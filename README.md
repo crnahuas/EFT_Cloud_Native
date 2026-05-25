@@ -1,6 +1,8 @@
 # Formativa 1 Cloud Native - CDY2204
 
-Microservicio REST en Spring Boot para la actividad formativa "Desplegando aplicaciones en la nube".
+Este repositorio contiene la solucion desarrollada para la actividad formativa "Desplegando aplicaciones en la nube" de la asignatura Desarrollo Cloud Native. El objetivo fue construir un microservicio REST simple, demostrable y alineado a la pauta: listar cursos, agregar cursos, inscribir estudiantes, calcular el total de inscripcion y persistir la informacion en Oracle Cloud.
+
+La aplicacion no incluye frontend ni autenticacion, porque esos puntos no forman parte del caso solicitado. El foco del trabajo esta en el backend, la persistencia cloud, la imagen Docker y el despliegue automatico hacia AWS EC2 mediante GitHub Actions.
 
 ## Endpoints requeridos
 
@@ -9,6 +11,8 @@ Microservicio REST en Spring Boot para la actividad formativa "Desplegando aplic
 | GET | `/cursos` | Consulta cursos disponibles con nombre, instructor, duracion y costo. |
 | POST | `/cursos` | Agrega un nuevo curso y lo persiste en Oracle Cloud. |
 | POST | `/inscripciones` | Inscribe un estudiante en uno o mas cursos, calcula el total y persiste la inscripcion en Oracle Cloud. |
+
+El flujo de uso esperado es crear uno o mas cursos, revisar la lista disponible y luego generar una inscripcion utilizando los IDs de los cursos existentes.
 
 ## Tecnologias
 
@@ -25,7 +29,11 @@ Microservicio REST en Spring Boot para la actividad formativa "Desplegando aplic
 - Oracle Cloud Database
 - Postman
 
+La eleccion de estas tecnologias responde directamente a la actividad: Spring Boot y Maven para el microservicio, Oracle Cloud para persistencia, Docker/Docker Hub para empaquetado y publicacion, GitHub Actions para CI/CD y AWS EC2 para ejecutar el contenedor publicado.
+
 ## Ejecutar localmente
+
+Para ejecutar localmente se debe tener disponible el wallet de Oracle Cloud. En este proyecto se utiliza el alias `procesobasedatos_high`, definido dentro del archivo `tnsnames.ora` del wallet.
 
 Configurar variables de entorno:
 
@@ -39,7 +47,7 @@ export ORACLE_DB_USERNAME='ADMIN'
 export ORACLE_DB_PASSWORD='TU_PASSWORD_ORACLE'
 ```
 
-Compilar:
+Compilar y ejecutar pruebas:
 
 ```bash
 mvn clean package
@@ -86,6 +94,8 @@ curl --location 'http://localhost:8080/inscripciones' \
 
 ## Docker local
 
+La imagen Docker incluye el JAR de la aplicacion y el wallet necesario para conectarse a Oracle Cloud. La password se entrega siempre por variable de entorno.
+
 ```bash
 docker build -t formativa-cloud-native:1.0 .
 docker run -d \
@@ -104,6 +114,6 @@ docker build --platform linux/amd64 -t formativa-cloud-native:1.0 .
 
 ## Documentacion de entrega
 
-La guia completa de arquitectura, configuracion cloud, pipeline, Postman, evidencia y checklist de rubrica esta en:
+La guia completa de arquitectura, configuracion cloud, pipeline, pruebas Postman, evidencias recomendadas y checklist de rubrica esta en:
 
 [docs/ENTREGA.md](docs/ENTREGA.md)

@@ -1,25 +1,33 @@
 # Entrega actividad formativa CDY2204
 
+Este documento resume la solucion implementada para la actividad "Desplegando aplicaciones en la nube". La propuesta se desarrollo priorizando que cada requerimiento de la pauta pueda demostrarse de forma directa: endpoints REST funcionando, datos persistidos en Oracle Cloud, imagen publicada en Docker Hub y despliegue automatico en una instancia EC2.
+
+La solucion se mantuvo acotada al caso solicitado. No se agrego frontend, autenticacion ni componentes extra, porque el objetivo de la entrega es evidenciar el flujo cloud native y no aumentar complejidad innecesaria.
+
 ## 1. Arquitectura completa del proyecto
 
-La solucion corresponde a un microservicio REST desarrollado con Spring Boot. Expone tres endpoints requeridos por la pauta:
+La solucion corresponde a un microservicio REST desarrollado con Spring Boot. El servicio concentra las operaciones solicitadas por la actividad y expone tres endpoints:
 
 - `GET /cursos`: consulta cursos disponibles.
 - `POST /cursos`: agrega cursos y los persiste en Oracle Cloud.
 - `POST /inscripciones`: inscribe estudiantes en uno o mas cursos, genera resumen, calcula total y persiste en Oracle Cloud.
 
-Flujo cloud:
+El flujo cloud implementado es el siguiente:
 
 ```text
 Postman -> AWS EC2:8080 -> Contenedor Docker -> Spring Boot -> Oracle Cloud Database
 GitHub main -> GitHub Actions -> Docker Hub -> AWS EC2 -> Contenedor actualizado
 ```
 
-No se incluye frontend, login, JWT ni microservicios adicionales porque la pauta no los solicita.
+Esta arquitectura permite demostrar el funcionamiento completo desde Postman y, al mismo tiempo, evidenciar el despliegue continuo solicitado por la pauta.
 
 ## 2. Explicacion tecnica alineada a la pauta
 
-La aplicacion usa Java, Spring Boot y Maven para construir el microservicio. Spring Web publica los endpoints REST. Spring Data JPA administra la persistencia en Oracle Cloud mediante el driver JDBC de Oracle. Docker empaqueta el microservicio como imagen portable. GitHub Actions automatiza compilacion, construccion de imagen, publicacion en Docker Hub y despliegue en EC2 al hacer push a `main`.
+La aplicacion usa Java 21, Spring Boot y Maven para construir el microservicio. Spring Web publica los endpoints REST y Spring Data JPA administra la persistencia en Oracle Cloud mediante el driver JDBC de Oracle.
+
+Docker se utiliza para empaquetar el microservicio junto con el wallet de Oracle Cloud. La imagen se publica en Docker Hub y luego es descargada desde EC2 durante el despliegue. GitHub Actions automatiza el proceso completo al hacer push a `main`: compila el proyecto, ejecuta pruebas, construye la imagen, la publica y actualiza el contenedor en AWS.
+
+El diseno busca que la solucion sea simple de explicar y facil de verificar durante la presentacion. Cada tecnologia tiene una responsabilidad concreta dentro del flujo de entrega.
 
 ## 3. Estructura de carpetas
 
@@ -47,18 +55,19 @@ La aplicacion usa Java, Spring Boot y Maven para construir el microservicio. Spr
 
 ## 4. Codigo completo
 
-Archivos principales:
+El codigo se separo en capas para mantener responsabilidades claras:
 
-- Entidades: `Curso.java`, `Inscripcion.java`
-- Repositorios: `CursoRepository.java`, `InscripcionRepository.java`
-- Servicios: `CursoService.java`, `InscripcionService.java`
-- Controladores: `CursoController.java`, `InscripcionController.java`
-- DTOs: `CursoRequest.java`, `CursoResponse.java`, `InscripcionRequest.java`, `InscripcionResponse.java`, `ErrorResponse.java`
-- Errores: `GlobalExceptionHandler.java`, `RecursoNoEncontradoException.java`
-- Configuracion: `application.properties`
-- Pruebas automaticas: `CursoServiceTest.java`, `InscripcionServiceTest.java`
+- Entidades: representan las tablas `CURSOS`, `INSCRIPCIONES` e `INSCRIPCION_CURSOS`.
+- Repositorios: encapsulan el acceso a datos con Spring Data JPA.
+- Servicios: contienen la logica de negocio, como crear cursos y calcular el total de una inscripcion.
+- Controladores: exponen los endpoints REST requeridos.
+- DTOs: separan los datos recibidos y respondidos por la API.
+- Manejo de errores: entrega respuestas controladas para validaciones y recursos inexistentes.
+- Pruebas automaticas: validan la creacion de cursos y el calculo de inscripciones.
 
 ## 5. application.properties
+
+La configuracion usa variables de entorno para evitar guardar credenciales en el repositorio. El usuario por defecto es `ADMIN`, pero la password se entrega solo por secret o variable local.
 
 ```properties
 spring.application.name=formativa-cloud-native
@@ -77,11 +86,11 @@ spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
 ```
 
-Las credenciales no se escriben en el codigo. Se entregan como variables de entorno locales o como GitHub Secrets.
+El valor `ORACLE_WALLET_PATH` permite que la misma aplicacion funcione localmente y dentro del contenedor. En EC2 el wallet queda en `/app/wallet`.
 
 ## 6. Dockerfile
 
-El `Dockerfile` compila con Maven y ejecuta el JAR con Java 21:
+El `Dockerfile` se construyo en dos etapas. La primera compila la aplicacion con Maven y extrae el wallet. La segunda genera una imagen de ejecucion mas directa con Java 21, el JAR y los archivos necesarios para conectarse a Oracle Cloud.
 
 ```dockerfile
 FROM maven:3.9-eclipse-temurin-21 AS build
@@ -118,7 +127,14 @@ Incluye las dependencias obligatorias para la pauta:
 
 Archivo: `.github/workflows/main.yml`.
 
-El workflow se llama `Build and Push Docker Image`. Se activa con push a `main`, pull request a `main` y ejecucion manual con `workflow_dispatch`. En pull request solo valida build; en push a `main` compila con Maven, crea imagen Docker `linux/amd64`, publica en Docker Hub y despliega en EC2 por SSH.
+El workflow se llama `Build and Push Docker Image`. Se preparo siguiendo el flujo propuesto por la actividad y por el ejemplo de clase: checkout, autenticacion en Docker Hub, build de imagen, push a Docker Hub, configuracion AWS, llave SSH y despliegue remoto.
+
+Adicionalmente se incorporaron dos ajustes necesarios para este proyecto:
+
+- Compilacion y pruebas Maven antes de construir la imagen.
+- Plataforma `linux/amd64`, para asegurar compatibilidad con EC2.
+
+En pull request el workflow valida build. En push a `main` publica la imagen y despliega en EC2.
 
 ## 9. Secrets GitHub
 
@@ -153,6 +169,8 @@ jdbc:oracle:thin:@procesobasedatos_high?TNS_ADMIN=/app/wallet
 
 ## 10. Pasos exactos Oracle Cloud
 
+Para la persistencia se uso una base Oracle Cloud ya creada para la actividad. El proyecto trabaja con wallet, por lo que el contenedor no necesita abrir conexiones sin cifrado hacia Oracle.
+
 1. Entrar a Oracle Cloud.
 2. Usar la base configurada para la actividad.
 3. Descargar el wallet de Oracle Cloud.
@@ -170,8 +188,8 @@ export ORACLE_DB_USERNAME='ADMIN'
 export ORACLE_DB_PASSWORD='TU_PASSWORD_ORACLE'
 ```
 
-7. Ejecutar la aplicacion. Con `spring.jpa.hibernate.ddl-auto=update`, Hibernate crea las tablas al iniciar.
-8. Si se requiere crear manualmente las tablas, usar `docs/oracle_schema.sql`.
+7. Ejecutar la aplicacion. Con `spring.jpa.hibernate.ddl-auto=update`, Hibernate crea o actualiza las tablas al iniciar.
+8. Si la base ya tenia tablas antiguas con otra estructura, limpiarlas antes de la demo o usar el script `docs/oracle_schema.sql`.
 
 ## 11. Pasos exactos Docker Hub
 
@@ -264,7 +282,7 @@ Para una demo academica se puede abrir `8080` a cualquier IPv4. En un ambiente p
 5. La imagen se publica en Docker Hub con tags `latest` y SHA del commit.
 6. GitHub Actions se conecta por SSH a EC2.
 7. EC2 descarga la ultima imagen desde Docker Hub.
-8. Se detiene el contenedor anterior.
+8. Se detiene cualquier contenedor anterior que use el puerto `8080`.
 9. Se inicia el contenedor nuevo en el puerto `8080`.
 10. Postman prueba los endpoints contra `http://IP_ELASTICA:8080`.
 
@@ -424,7 +442,9 @@ Curso inexistente en inscripcion:
 
 ## 19. Explicacion del pipeline
 
-El pipeline cumple el requerimiento de despliegue automatico porque se ejecuta con `push` a `main`. La etapa Maven valida que el proyecto compile y ejecuta pruebas automaticas de creacion de cursos, calculo total de inscripcion y error por curso inexistente. La etapa Docker genera una imagen reproducible llamada `my-app`. La etapa Docker Hub publica la imagen para que EC2 pueda descargarla. La etapa SSH actualiza el contenedor `my-app` en AWS EC2 sin intervencion manual.
+El pipeline cumple el requerimiento de despliegue automatico porque se ejecuta con `push` a `main`. La etapa Maven valida que el proyecto compile y ejecuta pruebas automaticas de creacion de cursos, calculo total de inscripcion y error por curso inexistente.
+
+Despues, Docker genera una imagen reproducible llamada `my-app`. Esta imagen se publica en Docker Hub para que EC2 pueda descargarla. Finalmente, la etapa SSH actualiza el contenedor en AWS EC2 sin intervencion manual. Antes de iniciar el nuevo contenedor, el workflow libera el puerto `8080` para evitar errores de despliegue cuando queda una ejecucion anterior activa.
 
 ## 20. Evidencias recomendadas para grabar
 
