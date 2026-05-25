@@ -100,8 +100,16 @@ jobs:
             set -e
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker pull "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+
+            CONTAINERS_ON_8080=$(docker ps -q --filter "publish=8080")
+            if [ -n "$CONTAINERS_ON_8080" ]; then
+              docker stop $CONTAINERS_ON_8080
+            fi
+
             docker stop "$IMAGE_NAME" || true
             docker rm "$IMAGE_NAME" || true
+            docker rm formativa-cloud-native || true
+
             docker run -d \
               --name "$IMAGE_NAME" \
               --restart unless-stopped \
