@@ -1,8 +1,8 @@
 # Formativa 1 Cloud Native - CDY2204
 
-Este repositorio contiene la solucion desarrollada para la actividad formativa "Desplegando aplicaciones en la nube" de la asignatura Desarrollo Cloud Native. El objetivo fue construir un microservicio REST simple, demostrable y alineado a la pauta: listar cursos, agregar cursos, inscribir estudiantes, calcular el total de inscripcion y persistir la informacion en Oracle Cloud.
+Este repositorio contiene una solucion cloud native para una plataforma educativa de cursos virtuales. El objetivo fue construir un microservicio REST simple y demostrable: listar cursos, agregar cursos, inscribir estudiantes, calcular el total de inscripcion y persistir la informacion en Oracle Cloud.
 
-La aplicacion no incluye frontend ni autenticacion, porque esos puntos no forman parte del caso solicitado. El foco del trabajo esta en el backend, la persistencia cloud, la imagen Docker y el despliegue automatico hacia AWS EC2 mediante GitHub Actions.
+La aplicacion no incluye frontend ni autenticacion. El foco del trabajo esta en el backend, la persistencia cloud, la imagen Docker y el despliegue automatico hacia AWS EC2 mediante GitHub Actions.
 
 ## Endpoints requeridos
 
@@ -29,7 +29,7 @@ El flujo de uso esperado es crear uno o mas cursos, revisar la lista disponible 
 - Oracle Cloud Database
 - Postman
 
-La eleccion de estas tecnologias responde directamente a la actividad: Spring Boot y Maven para el microservicio, Oracle Cloud para persistencia, Docker/Docker Hub para empaquetado y publicacion, GitHub Actions para CI/CD y AWS EC2 para ejecutar el contenedor publicado.
+La eleccion de estas tecnologias mantiene el proyecto enfocado: Spring Boot y Maven para el microservicio, Oracle Cloud para persistencia, Docker/Docker Hub para empaquetado y publicacion, GitHub Actions para CI/CD y AWS EC2 para ejecutar el contenedor publicado.
 
 ## Ejecutar localmente
 
@@ -114,6 +114,6 @@ docker build --platform linux/amd64 -t formativa-cloud-native:1.0 .
 
 ## Documentacion de entrega
 
-La guia completa de arquitectura, configuracion cloud, pipeline, pruebas Postman, evidencias recomendadas y checklist de rubrica esta en:
+La guia completa de arquitectura, configuracion cloud, pipeline, pruebas Postman, evidencias recomendadas y checklist tecnico esta en:
 
 [docs/ENTREGA.md](docs/ENTREGA.md)

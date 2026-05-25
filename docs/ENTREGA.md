@@ -1,12 +1,12 @@
-# Entrega actividad formativa CDY2204
+# Documentacion tecnica CDY2204
 
-Este documento resume la solucion implementada para la actividad "Desplegando aplicaciones en la nube". La propuesta se desarrollo priorizando que cada requerimiento de la pauta pueda demostrarse de forma directa: endpoints REST funcionando, datos persistidos en Oracle Cloud, imagen publicada en Docker Hub y despliegue automatico en una instancia EC2.
+Este documento resume la solucion implementada para el despliegue cloud native de una plataforma educativa. La propuesta se desarrollo priorizando una demostracion directa: endpoints REST funcionando, datos persistidos en Oracle Cloud, imagen publicada en Docker Hub y despliegue automatico en una instancia EC2.
 
-La solucion se mantuvo acotada al caso solicitado. No se agrego frontend, autenticacion ni componentes extra, porque el objetivo de la entrega es evidenciar el flujo cloud native y no aumentar complejidad innecesaria.
+La solucion se mantuvo acotada al alcance definido para el microservicio. No se agrego frontend, autenticacion ni componentes extra, porque el objetivo es evidenciar el flujo cloud native y no aumentar complejidad innecesaria.
 
 ## 1. Arquitectura completa del proyecto
 
-La solucion corresponde a un microservicio REST desarrollado con Spring Boot. El servicio concentra las operaciones solicitadas por la actividad y expone tres endpoints:
+La solucion corresponde a un microservicio REST desarrollado con Spring Boot. El servicio concentra las operaciones principales de cursos e inscripciones y expone tres endpoints:
 
 - `GET /cursos`: consulta cursos disponibles.
 - `POST /cursos`: agrega cursos y los persiste en Oracle Cloud.
@@ -19,9 +19,9 @@ Postman -> AWS EC2:8080 -> Contenedor Docker -> Spring Boot -> Oracle Cloud Data
 GitHub main -> GitHub Actions -> Docker Hub -> AWS EC2 -> Contenedor actualizado
 ```
 
-Esta arquitectura permite demostrar el funcionamiento completo desde Postman y, al mismo tiempo, evidenciar el despliegue continuo solicitado por la pauta.
+Esta arquitectura permite demostrar el funcionamiento completo desde Postman y, al mismo tiempo, evidenciar el despliegue continuo del servicio.
 
-## 2. Explicacion tecnica alineada a la pauta
+## 2. Explicacion tecnica
 
 La aplicacion usa Java 21, Spring Boot y Maven para construir el microservicio. Spring Web publica los endpoints REST y Spring Data JPA administra la persistencia en Oracle Cloud mediante el driver JDBC de Oracle.
 
@@ -112,7 +112,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 
 ## 7. pom.xml
 
-Incluye las dependencias obligatorias para la pauta:
+Incluye las dependencias necesarias para el microservicio:
 
 - `spring-boot-starter-web`
 - `spring-boot-starter-data-jpa`
@@ -127,7 +127,7 @@ Incluye las dependencias obligatorias para la pauta:
 
 Archivo: `.github/workflows/main.yml`.
 
-El workflow se llama `Build and Push Docker Image`. Se preparo siguiendo el flujo propuesto por la actividad y por el ejemplo de clase: checkout, autenticacion en Docker Hub, build de imagen, push a Docker Hub, configuracion AWS, llave SSH y despliegue remoto.
+El workflow se llama `Build and Push Docker Image`. Se preparo con un flujo directo de CI/CD: checkout, autenticacion en Docker Hub, build de imagen, push a Docker Hub, configuracion AWS, llave SSH y despliegue remoto.
 
 Adicionalmente se incorporaron dos ajustes necesarios para este proyecto:
 
@@ -138,7 +138,7 @@ En pull request el workflow valida build. En push a `main` publica la imagen y d
 
 ## 9. Secrets GitHub
 
-Secrets obligatorios segun la actividad:
+Secrets usados por el pipeline:
 
 ```text
 AWS_ACCESS_KEY_ID
@@ -169,10 +169,10 @@ jdbc:oracle:thin:@procesobasedatos_high?TNS_ADMIN=/app/wallet
 
 ## 10. Pasos exactos Oracle Cloud
 
-Para la persistencia se uso una base Oracle Cloud ya creada para la actividad. El proyecto trabaja con wallet, por lo que el contenedor no necesita abrir conexiones sin cifrado hacia Oracle.
+Para la persistencia se uso una base Oracle Cloud configurada con wallet. El contenedor no necesita abrir conexiones sin cifrado hacia Oracle.
 
 1. Entrar a Oracle Cloud.
-2. Usar la base configurada para la actividad.
+2. Usar la base configurada para el proyecto.
 3. Descargar el wallet de Oracle Cloud.
 4. Agregar el wallet al proyecto como `Wallet_ProcesoBaseDatos.zip` para la demostracion.
 5. Confirmar el alias del wallet en `tnsnames.ora`. Para esta entrega se usa `procesobasedatos_high`.
@@ -497,7 +497,7 @@ zip-o-rar-documentacion/
 └── link-video-teams.txt
 ```
 
-## 23. Checklist de cumplimiento de rubrica
+## 23. Checklist tecnico
 
 | Criterio | Cumplimiento |
 | --- | --- |
@@ -510,15 +510,15 @@ zip-o-rar-documentacion/
 | Video explicativo | Guion y evidencias definidos para Teams. |
 | Manejo de errores | Validaciones 400 y curso inexistente 404. |
 
-## 24. Como cada parte cumple la pauta
+## 24. Rol de cada componente
 
-- Java/Spring Boot/Maven: implementan el microservicio solicitado.
+- Java/Spring Boot/Maven: implementan el microservicio REST.
 - Oracle Cloud: almacena cursos e inscripciones.
 - Docker: genera imagen ejecutable del proyecto.
 - Docker Hub: almacena la imagen publicada por CI/CD.
 - GitHub Actions: automatiza build, push y deploy.
 - AWS EC2: ejecuta el contenedor publicado.
-- Postman: demuestra las tres funcionalidades requeridas.
+- Postman: demuestra las tres funcionalidades principales.
 
 ## 25. Errores comunes y solucion
 
