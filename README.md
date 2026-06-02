@@ -174,3 +174,7 @@ docker build --platform linux/amd64 -t formativa-cloud-native:1.0 .
 La guia completa de arquitectura, configuracion cloud, pipeline, pruebas Postman, evidencias recomendadas y checklist tecnico esta en:
 
 [docs/ENTREGA.md](docs/ENTREGA.md)
+
+La guia puntual para capturar evidencias en Postman esta en:
+
+[docs/EVIDENCIAS_POSTMAN.md](docs/EVIDENCIAS_POSTMAN.md)

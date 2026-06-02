@@ -44,6 +44,7 @@ El diseno busca que la solucion sea simple de explicar y facil de verificar dura
 ├── README.md
 ├── docs
 │   ├── ENTREGA.md
+│   ├── EVIDENCIAS_POSTMAN.md
 │   ├── oracle_schema.sql
 │   └── postman_collection.json
 ├── pom.xml
@@ -514,6 +515,7 @@ repositorio-github/
 zip-o-rar-documentacion/
 ├── README.md
 ├── docs/ENTREGA.md
+├── docs/EVIDENCIAS_POSTMAN.md
 ├── docs/postman_collection.json
 ├── docs/oracle_schema.sql
 └── link-video-teams.txt
