@@ -8,7 +8,7 @@
     {
       "key": "apiGatewayUrl",
       "value": "https://f3k22g500d.execute-api.us-east-1.amazonaws.com",
-      "description": "URL base publica de AWS API Gateway."
+      "description": "URL de invocacion de la etapa $default de AWS API Gateway."
     },
     {
       "key": "ec2BackendUrl",
@@ -18,7 +18,7 @@
     {
       "key": "accessToken",
       "value": "",
-      "description": "JWT emitido por Azure AD B2C. Debe coincidir con el issuer configurado en AZURE_B2C_ISSUER_URI."
+      "description": "JWT nuevo emitido por Azure AD B2C. Pegar solo el token, sin la palabra Bearer."
     },
     {
       "key": "cursoId",
@@ -29,6 +29,21 @@
       "key": "numeroResumen",
       "value": "1",
       "description": "Se actualiza automaticamente al crear la inscripcion demo por API Gateway."
+    },
+    {
+      "key": "azureAuthorizerIssuer",
+      "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0",
+      "description": "URL del emisor configurada en el autorizador JWT de API Gateway. Incluye el User Flow para que AWS encuentre openid-configuration."
+    },
+    {
+      "key": "azureTokenIssuer",
+      "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/",
+      "description": "Valor iss que debe traer el token decodificado en jwt.ms."
+    },
+    {
+      "key": "azureAudience",
+      "value": "2d238bc1-3782-46ca-a066-0e7b3514ddf3",
+      "description": "Valor aud que debe traer el token y que debe estar configurado como audiencia en API Gateway."
     }
   ],
   "item": [
@@ -289,20 +304,17 @@
         {
           "name": "02.1 Cursos - Listar",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/cursos",
-            "description": "Lista cursos mediante API Gateway con JWT valido."
+            "description": "Lista cursos mediante API Gateway con JWT valido. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {
@@ -332,25 +344,21 @@
         {
           "name": "02.2 Cursos - Crear",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
             "url": "{{apiGatewayUrl}}/cursos",
-            "description": "Crea un curso mediante API Gateway y guarda cursoId.",
+            "description": "Crea un curso mediante API Gateway y guarda cursoId. Envia el JWT en el header Authorization: Bearer {{accessToken}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Semana 5 API Gateway Demo\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}"
@@ -386,25 +394,21 @@
         {
           "name": "02.3 Inscripciones - Crear",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
             "url": "{{apiGatewayUrl}}/inscripciones",
-            "description": "Crea una inscripcion mediante API Gateway y guarda numeroResumen.",
+            "description": "Crea una inscripcion mediante API Gateway y guarda numeroResumen. Envia el JWT en el header Authorization: Bearer {{accessToken}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"estudianteNombre\": \"Estudiante Demo Semana 5\",\n  \"estudianteEmail\": \"demo.semana5@duocuc.cl\",\n  \"cursoIds\": [{{cursoId}}]\n}"
@@ -440,20 +444,17 @@
         {
           "name": "02.4 Resumen local - Descargar",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/inscripciones/{{numeroResumen}}/resumen",
-            "description": "Genera y descarga el resumen construido por Spring Boot."
+            "description": "Genera y descarga el resumen construido por Spring Boot. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {
@@ -483,20 +484,17 @@
         {
           "name": "02.5 S3 - Subir resumen",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/s3/uploadResumen?numeroResumen={{numeroResumen}}",
-            "description": "Sube a S3 el resumen generado."
+            "description": "Sube a S3 el resumen generado. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {
@@ -528,20 +526,17 @@
         {
           "name": "02.6 S3 - Actualizar resumen",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/s3/updateResumen?numeroResumen={{numeroResumen}}",
-            "description": "Actualiza en S3 el resumen generado."
+            "description": "Actualiza en S3 el resumen generado. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {
@@ -573,20 +568,17 @@
         {
           "name": "02.7 S3 - Descargar resumen",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/s3/downloadResumen?numeroResumen={{numeroResumen}}",
-            "description": "Descarga desde S3 el resumen usando API Gateway con JWT."
+            "description": "Descarga desde S3 el resumen usando API Gateway con JWT. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {
@@ -616,20 +608,17 @@
         {
           "name": "02.8 S3 - Eliminar resumen",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT emitido por Azure AD B2C"
+              }
+            ],
             "url": "{{apiGatewayUrl}}/s3/deleteResumen?numeroResumen={{numeroResumen}}",
-            "description": "Elimina desde S3 la evidencia usada en la prueba."
+            "description": "Elimina desde S3 la evidencia usada en la prueba. Envia el JWT en el header Authorization: Bearer {{accessToken}}."
           },
           "event": [
             {

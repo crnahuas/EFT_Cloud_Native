@@ -100,7 +100,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          AZURE_B2C_ISSUER_URI: ${{ secrets.AZURE_B2C_ISSUER_URI }}
+          AZURE_B2C_TOKEN_ISSUER_URI: ${{ secrets.AZURE_B2C_TOKEN_ISSUER_URI || 'https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/' }}
+          AZURE_B2C_JWK_SET_URI: ${{ secrets.AZURE_B2C_JWK_SET_URI || 'https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/b2c_1_duocdemoazure_registro_login/discovery/v2.0/keys' }}
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$USER_SERVER@$EC2_HOST" << EOF
             set -e
@@ -126,7 +127,11 @@ jobs:
               '    oauth2:' \
               '      resourceserver:' \
               '        jwt:' \
-              "          issuer-uri: \"$AZURE_B2C_ISSUER_URI\"" \
+              "          jwk-set-uri: \"$AZURE_B2C_JWK_SET_URI\"" \
+              'app:' \
+              '  security:' \
+              '    jwt:' \
+              "      issuer-uri: \"$AZURE_B2C_TOKEN_ISSUER_URI\"" \
               'aws:' \
               "  region: \"$AWS_REGION\"" \
               "  access-key: \"$AWS_ACCESS_KEY_ID\"" \
@@ -149,7 +154,8 @@ jobs:
               -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
               -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
               -e AWS_S3_BUCKET_NAME="$AWS_S3_BUCKET_NAME" \
-              -e AZURE_B2C_ISSUER_URI="$AZURE_B2C_ISSUER_URI" \
+              -e AZURE_B2C_TOKEN_ISSUER_URI="$AZURE_B2C_TOKEN_ISSUER_URI" \
+              -e AZURE_B2C_JWK_SET_URI="$AZURE_B2C_JWK_SET_URI" \
               "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
             docker ps
           EOF
