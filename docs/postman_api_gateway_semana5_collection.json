@@ -33,17 +33,22 @@
     {
       "key": "azureAuthorizerIssuer",
       "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0",
-      "description": "URL del emisor configurada en el autorizador JWT de API Gateway. Incluye el User Flow para que AWS encuentre openid-configuration."
+      "description": "Emisor configurado en API Gateway. Azure B2C debe emitir tokens con este iss para que el autorizador JWT los acepte."
     },
     {
       "key": "azureTokenIssuer",
-      "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/",
-      "description": "Valor iss que debe traer el token decodificado en jwt.ms."
+      "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0/",
+      "description": "iss esperado en tokens nuevos si el User Flow esta configurado con issuer de politica."
     },
     {
       "key": "azureAudience",
       "value": "2d238bc1-3782-46ca-a066-0e7b3514ddf3",
-      "description": "Valor aud que debe traer el token y que debe estar configurado como audiencia en API Gateway."
+      "description": "aud que debe traer el token y que debe estar configurado como audiencia en API Gateway."
+    },
+    {
+      "key": "azureLegacyTokenIssuer",
+      "value": "https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/",
+      "description": "iss antiguo visto en jwt.ms. Spring Boot lo acepta temporalmente, pero API Gateway no lo acepta con el autorizador JWT actual."
     }
   ],
   "item": [

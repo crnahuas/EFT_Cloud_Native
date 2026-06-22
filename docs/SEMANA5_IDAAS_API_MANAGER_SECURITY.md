@@ -31,13 +31,16 @@ API Gateway - Audiencia:
 2d238bc1-3782-46ca-a066-0e7b3514ddf3
 
 Spring Boot - issuer del token:
-AZURE_B2C_TOKEN_ISSUER_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/
+AZURE_B2C_TOKEN_ISSUER_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0/
+
+Spring Boot - issuer antiguo aceptado temporalmente:
+AZURE_B2C_LEGACY_TOKEN_ISSUER_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/
 
 Spring Boot - llaves publicas:
 AZURE_B2C_JWK_SET_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/b2c_1_duocdemoazure_registro_login/discovery/v2.0/keys
 ```
 
-El token muestra como `iss` la URL terminada en `/v2.0/`. API Gateway, en cambio, necesita que la URL del emisor incluya el User Flow para encontrar el endpoint `/.well-known/openid-configuration`.
+API Gateway necesita que la URL del emisor incluya el User Flow para encontrar el endpoint `/.well-known/openid-configuration`. Por eso, en Azure AD B2C el User Flow debe emitir el `iss` con la politica. Si sigue emitiendo el `iss` sin politica, API Gateway no lo aceptara aunque el backend lo pueda validar.
 
 ## Spring Security
 
@@ -77,7 +80,7 @@ La guia pide volver a la API creada en Semana 4, editar la integracion y apuntar
 1. Reutilizar las configuraciones de IDaaS de Semana 4 en Azure AD B2C.
 2. Agregar dependencias de Spring Security y OAuth2 Resource Server al `pom.xml`.
 3. Crear `SecurityConfig.java` dentro del paquete `config`.
-4. Configurar `AZURE_B2C_TOKEN_ISSUER_URI` y `AZURE_B2C_JWK_SET_URI` para que Spring Security valide el JWT emitido por Azure AD B2C.
+4. Configurar `AZURE_B2C_TOKEN_ISSUER_URI`, `AZURE_B2C_LEGACY_TOKEN_ISSUER_URI` y `AZURE_B2C_JWK_SET_URI` para que Spring Security valide el JWT emitido por Azure AD B2C.
 5. Redesplegar el backend en EC2 usando GitHub Actions.
 6. Probar la IP elastica de EC2 sin token y confirmar respuesta `401`.
 7. Volver al API Gateway creado en Semana 4 y editar/registrar las rutas hacia la IP elastica + endpoint.

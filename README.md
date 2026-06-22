@@ -61,7 +61,8 @@ export AWS_SECRET_ACCESS_KEY='TU_SECRET_KEY_AWS_ACADEMY'
 export AWS_SESSION_TOKEN='TU_SESSION_TOKEN_AWS_ACADEMY'
 export AWS_S3_BUCKET_NAME='TU_BUCKET_S3'
 
-export AZURE_B2C_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/'
+export AZURE_B2C_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0/'
+export AZURE_B2C_LEGACY_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/'
 export AZURE_B2C_JWK_SET_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/b2c_1_duocdemoazure_registro_login/discovery/v2.0/keys'
 ```
 
@@ -82,6 +83,7 @@ AWS_SECRET_ACCESS_KEY
 AWS_SESSION_TOKEN
 AWS_S3_BUCKET_NAME
 AZURE_B2C_TOKEN_ISSUER_URI
+AZURE_B2C_LEGACY_TOKEN_ISSUER_URI
 AZURE_B2C_JWK_SET_URI
 ```
 
@@ -185,7 +187,8 @@ docker run -d \
   -p 8080:8080 \
   -e ORACLE_DB_USERNAME='ADMIN' \
   -e ORACLE_DB_PASSWORD='TU_PASSWORD_ORACLE' \
-  -e AZURE_B2C_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/' \
+  -e AZURE_B2C_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0/' \
+  -e AZURE_B2C_LEGACY_TOKEN_ISSUER_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/' \
   -e AZURE_B2C_JWK_SET_URI='https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/b2c_1_duocdemoazure_registro_login/discovery/v2.0/keys' \
   formativa-cloud-native:1.0
 ```
