@@ -116,6 +116,8 @@ jobs:
             docker rm "$IMAGE_NAME" || true
             docker rm formativa-cloud-native || true
 
+            rm -rf /tmp/formativa-cloud-native-application.yml
+
             printf '%s\n' \
               'spring:' \
               '  datasource:' \
