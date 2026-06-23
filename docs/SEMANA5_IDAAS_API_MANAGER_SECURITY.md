@@ -21,26 +21,13 @@ El API Gateway controla la entrada publica y Spring Security protege el microser
 
 IDaaS usado: Azure AD B2C, reutilizando el tenant, la aplicacion y el User Flow configurados en Semana 4.
 
-El token debe ser un JWT emitido por la politica de Azure AD B2C configurada para la aplicacion. En este proyecto se usan estos valores:
+El token debe ser un JWT emitido por la politica de Azure AD B2C configurada en Semana 4. El backend Spring Boot usa el issuer configurado en:
 
 ```bash
-API Gateway - URL del emisor:
-https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0
-
-API Gateway - Audiencia:
-2d238bc1-3782-46ca-a066-0e7b3514ddf3
-
-Spring Boot - issuer del token:
-AZURE_B2C_TOKEN_ISSUER_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/B2C_1_DuocDemoAzure_registro_login/v2.0/
-
-Spring Boot - issuer antiguo aceptado temporalmente:
-AZURE_B2C_LEGACY_TOKEN_ISSUER_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/v2.0/
-
-Spring Boot - llaves publicas:
-AZURE_B2C_JWK_SET_URI=https://duocucazure.b2clogin.com/f1ef6dd7-1653-4742-be87-71512d709704/b2c_1_duocdemoazure_registro_login/discovery/v2.0/keys
+AZURE_B2C_ISSUER_URI=ISSUER_DEL_USER_FLOW_DE_SEMANA_4
 ```
 
-API Gateway necesita que la URL del emisor incluya el User Flow para encontrar el endpoint `/.well-known/openid-configuration`. Por eso, en Azure AD B2C el User Flow debe emitir el `iss` con la politica. Si sigue emitiendo el `iss` sin politica, API Gateway no lo aceptara aunque el backend lo pueda validar.
+Este valor debe ser el mismo issuer que se usa en el autorizador JWT de API Gateway creado en Semana 4.
 
 ## Spring Security
 
@@ -48,8 +35,7 @@ El microservicio usa:
 
 - `spring-boot-starter-security`
 - `spring-boot-starter-oauth2-resource-server`
-- validacion JWT mediante `spring.security.oauth2.resourceserver.jwt.jwk-set-uri`
-- validacion del issuer del token mediante `app.security.jwt.issuer-uri`
+- validacion JWT mediante `spring.security.oauth2.resourceserver.jwt.issuer-uri`
 - sesiones stateless
 - CSRF deshabilitado para API REST
 - todos los endpoints con `authenticated()`
@@ -80,7 +66,7 @@ La guia pide volver a la API creada en Semana 4, editar la integracion y apuntar
 1. Reutilizar las configuraciones de IDaaS de Semana 4 en Azure AD B2C.
 2. Agregar dependencias de Spring Security y OAuth2 Resource Server al `pom.xml`.
 3. Crear `SecurityConfig.java` dentro del paquete `config`.
-4. Configurar `AZURE_B2C_TOKEN_ISSUER_URI`, `AZURE_B2C_LEGACY_TOKEN_ISSUER_URI` y `AZURE_B2C_JWK_SET_URI` para que Spring Security valide el JWT emitido por Azure AD B2C.
+4. Configurar `AZURE_B2C_ISSUER_URI` para que Spring Security valide el JWT emitido por Azure AD B2C.
 5. Redesplegar el backend en EC2 usando GitHub Actions.
 6. Probar la IP elastica de EC2 sin token y confirmar respuesta `401`.
 7. Volver al API Gateway creado en Semana 4 y editar/registrar las rutas hacia la IP elastica + endpoint.
@@ -113,8 +99,8 @@ Antes de ejecutar la carpeta con token:
 Orden sugerido:
 
 1. Mostrar la arquitectura: Azure AD B2C emite JWT, API Gateway valida JWT, Spring Boot valida JWT con Spring Security.
-2. Mostrar en GitHub el `SecurityConfig.java`, las dependencias de seguridad del `pom.xml`, `AZURE_B2C_TOKEN_ISSUER_URI` y `AZURE_B2C_JWK_SET_URI`.
-3. Mostrar que se reutiliza el User Flow de Azure AD B2C de Semana 4, que el token trae el `iss` esperado y que API Gateway usa el emisor con User Flow.
+2. Mostrar en GitHub el `SecurityConfig.java`, las dependencias de seguridad del `pom.xml` y `AZURE_B2C_ISSUER_URI`.
+3. Mostrar que se reutiliza el User Flow de Azure AD B2C de Semana 4.
 4. Mostrar el despliegue del backend modificado en EC2.
 5. Ejecutar en Postman la carpeta `00 - Backend EC2 securitizado sin token` y evidenciar `401`.
 6. Mostrar API Gateway con las rutas inscritas apuntando a la IP elastica + endpoint.
