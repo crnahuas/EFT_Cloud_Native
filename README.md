@@ -1,8 +1,8 @@
 # Formativa 1 Cloud Native - CDY2204
 
-Este repositorio contiene una solucion cloud native para una plataforma educativa de cursos virtuales. La Semana 5 reutiliza el backend y la configuracion de API Gateway/IDaaS trabajada en Semana 4, agregando Spring Security para proteger los endpoints del microservicio.
+Este repositorio contiene una solucion cloud native para una plataforma educativa de cursos virtuales. La Semana 7 integra RabbitMQ para enviar y consumir mensajes asincronos asociados al resumen de inscripcion.
 
-La aplicacion no incluye frontend. El foco del trabajo esta en el backend, la persistencia cloud, la imagen Docker, el despliegue automatico hacia AWS EC2 mediante GitHub Actions y la autenticacion JWT exigida en Semana 5.
+La aplicacion no incluye frontend. El foco del trabajo esta en el backend, la persistencia cloud, RabbitMQ, la imagen Docker, el despliegue automatico hacia AWS EC2 mediante GitHub Actions y la autenticacion JWT.
 
 ## Endpoints requeridos
 
@@ -12,6 +12,7 @@ La aplicacion no incluye frontend. El foco del trabajo esta en el backend, la pe
 | POST | `/cursos` | Agrega un nuevo curso y lo persiste en Oracle Cloud. |
 | POST | `/inscripciones` | Inscribe un estudiante en uno o mas cursos, calcula el total y persiste la inscripcion en Oracle Cloud. |
 | GET | `/inscripciones/{numeroResumen}/resumen` | Genera y descarga el archivo fisico `resumen.txt` de una inscripcion. |
+| POST | `/inscripciones/resumenes-mq/consumir` | Consume un resumen desde RabbitMQ y lo guarda en Oracle Cloud. |
 | POST | `/s3/uploadResumen?numeroResumen=1` | Sube el resumen a AWS S3 en la carpeta `numeroResumen/`. |
 | PUT | `/s3/updateResumen?numeroResumen=1` | Reemplaza un resumen existente en AWS S3. |
 | GET | `/s3/downloadResumen?numeroResumen=1` | Descarga el resumen almacenado en AWS S3. |
@@ -28,6 +29,8 @@ El flujo de uso esperado es crear uno o mas cursos, revisar la lista disponible 
 - Spring Data JPA
 - Spring Security
 - OAuth2 Resource Server JWT
+- Spring AMQP
+- RabbitMQ
 - Oracle JDBC
 - Docker
 - Docker Hub
@@ -60,6 +63,11 @@ export AWS_ACCESS_KEY_ID='TU_ACCESS_KEY_AWS_ACADEMY'
 export AWS_SECRET_ACCESS_KEY='TU_SECRET_KEY_AWS_ACADEMY'
 export AWS_SESSION_TOKEN='TU_SESSION_TOKEN_AWS_ACADEMY'
 export AWS_S3_BUCKET_NAME='TU_BUCKET_S3'
+
+export RABBITMQ_HOST='localhost'
+export RABBITMQ_PORT='5672'
+export RABBITMQ_USERNAME='guest'
+export RABBITMQ_PASSWORD='guest'
 
 export AZURE_B2C_ISSUER_URI='ISSUER_DEL_USER_FLOW_DE_SEMANA_4'
 ```
@@ -94,6 +102,14 @@ Ejecutar:
 ```bash
 java -jar target/formativa-cloud-native-0.0.1-SNAPSHOT.jar
 ```
+
+Levantar RabbitMQ local antes de probar el flujo de Semana 7:
+
+```bash
+docker compose up -d rabbitmq
+```
+
+La consola queda disponible en `http://localhost:15672` con usuario `guest` y password `guest`.
 
 ## Probar con curl
 
@@ -143,6 +159,13 @@ Generar y descargar el resumen fisico:
 curl --location 'http://localhost:8080/inscripciones/1/resumen' \
   --header "Authorization: Bearer $ACCESS_TOKEN" \
   --output resumen.txt
+```
+
+Consumir el resumen desde RabbitMQ y guardarlo en Oracle Cloud:
+
+```bash
+curl --request POST 'http://localhost:8080/inscripciones/resumenes-mq/consumir' \
+  --header "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 Subir el resumen generado a S3. El objeto queda en la clave `1/resumen.txt`:
@@ -202,3 +225,9 @@ La guia de aplicacion de la pauta Semana 5, basada en la reutilizacion de Semana
 Coleccion Postman especifica para probar los endpoints publicados en API Gateway:
 
 [docs/postman_api_gateway_semana5_collection.json](docs/postman_api_gateway_semana5_collection.json)
+
+## Documentacion de entrega Semana 7
+
+La guia de RabbitMQ, flujo de prueba y evidencias sugeridas esta en:
+
+[docs/SEMANA7_RABBITMQ.md](docs/SEMANA7_RABBITMQ.md)

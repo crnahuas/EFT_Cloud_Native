@@ -19,13 +19,16 @@ public class ResumenInscripcionService {
     public static final String RESUMEN_FILENAME = "resumen.txt";
 
     private final InscripcionRepository inscripcionRepository;
+    private final ResumenInscripcionMqService resumenInscripcionMqService;
     private final Path directorioResumenes;
 
     public ResumenInscripcionService(
             InscripcionRepository inscripcionRepository,
+            ResumenInscripcionMqService resumenInscripcionMqService,
             @Value("${app.resumenes.path:./resumenes}") String resumenesPath
     ) {
         this.inscripcionRepository = inscripcionRepository;
+        this.resumenInscripcionMqService = resumenInscripcionMqService;
         this.directorioResumenes = Path.of(resumenesPath);
     }
 
@@ -41,6 +44,7 @@ public class ResumenInscripcionService {
         try {
             Files.createDirectories(carpetaResumen);
             Files.writeString(archivoResumen, contenido, StandardCharsets.UTF_8);
+            resumenInscripcionMqService.enviarResumen(inscripcion, contenido);
             return archivoResumen;
         } catch (IOException exception) {
             throw new ArchivoStorageException("No fue posible generar el archivo fisico del resumen", exception);

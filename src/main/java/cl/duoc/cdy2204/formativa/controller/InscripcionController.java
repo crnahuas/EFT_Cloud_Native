@@ -2,8 +2,10 @@ package cl.duoc.cdy2204.formativa.controller;
 
 import cl.duoc.cdy2204.formativa.dto.InscripcionRequest;
 import cl.duoc.cdy2204.formativa.dto.InscripcionResponse;
+import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqResponse;
 import cl.duoc.cdy2204.formativa.service.InscripcionService;
 import cl.duoc.cdy2204.formativa.service.ResumenInscripcionService;
+import cl.duoc.cdy2204.formativa.service.ResumenInscripcionMqService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ContentDisposition;
@@ -26,13 +28,16 @@ public class InscripcionController {
 
     private final InscripcionService inscripcionService;
     private final ResumenInscripcionService resumenInscripcionService;
+    private final ResumenInscripcionMqService resumenInscripcionMqService;
 
     public InscripcionController(
             InscripcionService inscripcionService,
-            ResumenInscripcionService resumenInscripcionService
+            ResumenInscripcionService resumenInscripcionService,
+            ResumenInscripcionMqService resumenInscripcionMqService
     ) {
         this.inscripcionService = inscripcionService;
         this.resumenInscripcionService = resumenInscripcionService;
+        this.resumenInscripcionMqService = resumenInscripcionMqService;
     }
 
     @PostMapping
@@ -52,5 +57,12 @@ public class InscripcionController {
                 .contentType(MediaType.TEXT_PLAIN)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .body(archivo);
+    }
+
+    @PostMapping("/resumenes-mq/consumir")
+    public ResponseEntity<ResumenInscripcionMqResponse> consumirResumenMq() {
+        return resumenInscripcionMqService.consumirYGuardarResumen()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

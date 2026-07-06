@@ -152,11 +152,38 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/inscripciones/{{numeroResumen}}/resumen",
-            "description": "Evidencia: archivo fisico resumen.txt generado y descargado."
+            "description": "Evidencia: archivo fisico resumen.txt generado, descargado y enviado a RabbitMQ."
           }
         },
         {
-          "name": "05 S3 - Subir resumen generado",
+          "name": "05 RabbitMQ - Consumir resumen y guardar en Oracle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const data = pm.response.json();",
+                  "pm.test('Resumen consumido desde RabbitMQ', function () {",
+                  "  pm.expect(data.id).to.exist;",
+                  "  pm.expect(data.numeroResumen).to.eql(Number(pm.collectionVariables.get('numeroResumen')));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/inscripciones/resumenes-mq/consumir",
+            "description": "Evidencia Semana 7: consume un mensaje desde RabbitMQ y guarda el resumen en RESUMENES_INSCRIPCION_MQ."
+          }
+        },
+        {
+          "name": "06 S3 - Subir resumen generado",
           "event": [
             {
               "listen": "test",
@@ -183,7 +210,7 @@
           }
         },
         {
-          "name": "06 S3 - Actualizar resumen generado",
+          "name": "07 S3 - Actualizar resumen generado",
           "event": [
             {
               "listen": "test",
@@ -209,7 +236,7 @@
           }
         },
         {
-          "name": "07 S3 - Descargar resumen",
+          "name": "08 S3 - Descargar resumen",
           "event": [
             {
               "listen": "test",
@@ -234,7 +261,7 @@
           }
         },
         {
-          "name": "08 S3 - Eliminar resumen",
+          "name": "09 S3 - Eliminar resumen",
           "event": [
             {
               "listen": "test",
@@ -265,7 +292,7 @@
       "name": "02 - Evidencias de validacion y errores",
       "item": [
         {
-          "name": "09 Error validacion - Curso sin nombre",
+          "name": "10 Error validacion - Curso sin nombre",
           "event": [
             {
               "listen": "test",
@@ -296,7 +323,7 @@
           }
         },
         {
-          "name": "10 Error negocio - Curso inexistente",
+          "name": "11 Error negocio - Curso inexistente",
           "event": [
             {
               "listen": "test",
