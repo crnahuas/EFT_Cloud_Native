@@ -84,9 +84,10 @@ La tabla nueva es `RESUMENES_INSCRIPCION_MQ` y la secuencia es `RESUMEN_MQ_SEQ`.
 1. Crear un curso con `POST /cursos`.
 2. Crear una inscripcion con `POST /inscripciones`.
 3. Generar el resumen con `GET /inscripciones/{numeroResumen}/resumen`.
-4. Revisar en RabbitMQ que la cola `resumen.inscripcion.queue` tenga un mensaje listo.
-5. Consumir y guardar con `POST /inscripciones/resumenes-mq/consumir`.
-6. Verificar en Oracle Cloud la fila insertada en `RESUMENES_INSCRIPCION_MQ`.
+4. Publicar explicitamente el resumen con `POST /inscripciones/{numeroResumen}/resumenes-mq/producir`.
+5. Revisar en RabbitMQ que la cola `resumen.inscripcion.queue` tenga un mensaje listo.
+6. Consumir y guardar con `POST /inscripciones/resumenes-mq/consumir`.
+7. Verificar en Oracle Cloud la fila insertada en `RESUMENES_INSCRIPCION_MQ`.
 
 Todos los endpoints mantienen la seguridad JWT del proyecto.
 
@@ -96,7 +97,8 @@ Mostrar en este orden:
 
 1. `docker compose up -d rabbitmq` y la consola RabbitMQ abierta.
 2. Postman creando curso e inscripcion.
-3. Postman generando el resumen.
-4. RabbitMQ mostrando el mensaje pendiente en la cola.
-5. Postman ejecutando el endpoint de consumo.
-6. SQL Developer mostrando la fila guardada en `RESUMENES_INSCRIPCION_MQ`.
+3. Postman o cliente HTML generando el resumen.
+4. Postman o cliente HTML publicando el mensaje en RabbitMQ.
+5. RabbitMQ mostrando el mensaje pendiente en la cola.
+6. Postman o cliente HTML ejecutando el endpoint de consumo.
+7. SQL Developer mostrando la fila guardada en `RESUMENES_INSCRIPCION_MQ`.

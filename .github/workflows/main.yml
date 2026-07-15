@@ -84,7 +84,17 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      # Paso 10: Conectarse a EC2 y desplegar el contenedor
+      # Paso 10: Copiar compose a EC2
+      - name: Copy Docker Compose file to EC2
+        if: github.event_name != 'pull_request'
+        env:
+          USER_SERVER: ${{ secrets.USER_SERVER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            docker-compose.ec2.yml "$USER_SERVER@$EC2_HOST:~/docker-compose.ec2.yml"
+
+      # Paso 11: Conectarse a EC2 y desplegar app + RabbitMQ
       - name: SSH commands to deploy
         if: github.event_name != 'pull_request'
         env:
@@ -101,11 +111,13 @@ jobs:
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
           AZURE_B2C_ISSUER_URI: ${{ secrets.AZURE_B2C_ISSUER_URI }}
+          APP_CORS_ALLOWED_ORIGINS: ${{ secrets.APP_CORS_ALLOWED_ORIGINS || '*' }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME || 'guest' }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD || 'guest' }}
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$USER_SERVER@$EC2_HOST" << EOF
             set -e
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker pull "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
 
             CONTAINERS_ON_8080=\$(docker ps -q --filter "publish=8080")
             if [ -n "\$CONTAINERS_ON_8080" ]; then
@@ -116,43 +128,24 @@ jobs:
             docker rm "$IMAGE_NAME" || true
             docker rm formativa-cloud-native || true
 
-            CONFIG_FILE="\$HOME/formativa-cloud-native-application.yml"
-            rm -f "\$CONFIG_FILE"
+            ENV_FILE="\$HOME/formativa-cloud-native.env"
+            cat > "\$ENV_FILE" << ENVVARS
+          DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
+          ORACLE_DB_URL=${ORACLE_DB_URL:-jdbc:oracle:thin:@procesobasedatos_high?TNS_ADMIN=/app/wallet}
+          ORACLE_DB_USERNAME=${ORACLE_DB_USERNAME:-ADMIN}
+          ORACLE_DB_PASSWORD=$ORACLE_DB_PASSWORD
+          AWS_REGION=$AWS_REGION
+          AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+          AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+          AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+          AWS_S3_BUCKET_NAME=$AWS_S3_BUCKET_NAME
+          AZURE_B2C_ISSUER_URI=$AZURE_B2C_ISSUER_URI
+          APP_CORS_ALLOWED_ORIGINS=$APP_CORS_ALLOWED_ORIGINS
+          RABBITMQ_USERNAME=$RABBITMQ_USERNAME
+          RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD
+          ENVVARS
 
-            printf '%s\n' \
-              'spring:' \
-              '  datasource:' \
-              "    url: \"${ORACLE_DB_URL:-jdbc:oracle:thin:@procesobasedatos_high?TNS_ADMIN=/app/wallet}\"" \
-              "    username: \"${ORACLE_DB_USERNAME:-ADMIN}\"" \
-              "    password: \"$ORACLE_DB_PASSWORD\"" \
-              '  security:' \
-              '    oauth2:' \
-              '      resourceserver:' \
-              '        jwt:' \
-              "          issuer-uri: \"$AZURE_B2C_ISSUER_URI\"" \
-              'aws:' \
-              "  region: \"$AWS_REGION\"" \
-              "  access-key: \"$AWS_ACCESS_KEY_ID\"" \
-              "  secret-key: \"$AWS_SECRET_ACCESS_KEY\"" \
-              "  session-token: \"$AWS_SESSION_TOKEN\"" \
-              '  s3:' \
-              "    bucket-name: \"$AWS_S3_BUCKET_NAME\"" \
-              > "\$CONFIG_FILE"
-
-            docker run -d \
-              --name "$IMAGE_NAME" \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              -v "\$CONFIG_FILE:/app/application.yml:ro" \
-              -e ORACLE_DB_URL="${ORACLE_DB_URL:-jdbc:oracle:thin:@procesobasedatos_high?TNS_ADMIN=/app/wallet}" \
-              -e ORACLE_DB_USERNAME="${ORACLE_DB_USERNAME:-ADMIN}" \
-              -e ORACLE_DB_PASSWORD="$ORACLE_DB_PASSWORD" \
-              -e AWS_REGION="$AWS_REGION" \
-              -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-              -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
-              -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
-              -e AWS_S3_BUCKET_NAME="$AWS_S3_BUCKET_NAME" \
-              -e AZURE_B2C_ISSUER_URI="$AZURE_B2C_ISSUER_URI" \
-              "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
-            docker ps
+            docker compose -f "\$HOME/docker-compose.ec2.yml" --env-file "\$ENV_FILE" pull
+            docker compose -f "\$HOME/docker-compose.ec2.yml" --env-file "\$ENV_FILE" up -d
+            docker compose -f "\$HOME/docker-compose.ec2.yml" --env-file "\$ENV_FILE" ps
           EOF

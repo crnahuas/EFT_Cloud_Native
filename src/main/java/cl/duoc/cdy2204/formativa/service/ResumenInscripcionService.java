@@ -2,6 +2,7 @@ package cl.duoc.cdy2204.formativa.service;
 
 import cl.duoc.cdy2204.formativa.entity.Curso;
 import cl.duoc.cdy2204.formativa.entity.Inscripcion;
+import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqProducerResponse;
 import cl.duoc.cdy2204.formativa.exception.ArchivoStorageException;
 import cl.duoc.cdy2204.formativa.exception.RecursoNoEncontradoException;
 import cl.duoc.cdy2204.formativa.repository.InscripcionRepository;
@@ -58,6 +59,16 @@ public class ResumenInscripcionService {
         } catch (IOException exception) {
             throw new ArchivoStorageException("No fue posible leer el archivo fisico del resumen", exception);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public ResumenInscripcionMqProducerResponse publicarResumenEnCola(Long numeroResumen) {
+        Inscripcion inscripcion = inscripcionRepository.findById(numeroResumen)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la inscripcion " + numeroResumen));
+
+        String contenido = generarContenido(inscripcion);
+        resumenInscripcionMqService.enviarResumen(inscripcion, contenido);
+        return resumenInscripcionMqService.responseProductor(numeroResumen);
     }
 
     private String generarContenido(Inscripcion inscripcion) {

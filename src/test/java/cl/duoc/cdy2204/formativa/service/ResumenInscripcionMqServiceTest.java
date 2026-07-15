@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import cl.duoc.cdy2204.formativa.config.RabbitMQConfig;
 import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMessage;
+import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqProducerResponse;
 import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqResponse;
 import cl.duoc.cdy2204.formativa.entity.Inscripcion;
 import cl.duoc.cdy2204.formativa.entity.ResumenInscripcionMq;
@@ -77,6 +78,18 @@ class ResumenInscripcionMqServiceTest {
         Optional<ResumenInscripcionMqResponse> response = service.consumirYGuardarResumen();
 
         assertThat(response).isEmpty();
+    }
+
+    @Test
+    void responseProductorExponeDatosDeRabbitMq() {
+        ResumenInscripcionMqService service = service();
+
+        ResumenInscripcionMqProducerResponse response = service.responseProductor(10L);
+
+        assertThat(response.getNumeroResumen()).isEqualTo(10L);
+        assertThat(response.getCola()).isEqualTo(RabbitMQConfig.RESUMEN_QUEUE);
+        assertThat(response.getExchange()).isEqualTo(RabbitMQConfig.RESUMEN_EXCHANGE);
+        assertThat(response.getRoutingKey()).isEqualTo(RabbitMQConfig.RESUMEN_ROUTING_KEY);
     }
 
     private ResumenInscripcionMqService service() {

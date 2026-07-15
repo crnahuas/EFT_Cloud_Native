@@ -2,6 +2,7 @@ package cl.duoc.cdy2204.formativa.service;
 
 import cl.duoc.cdy2204.formativa.config.RabbitMQConfig;
 import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMessage;
+import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqProducerResponse;
 import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqResponse;
 import cl.duoc.cdy2204.formativa.entity.Inscripcion;
 import cl.duoc.cdy2204.formativa.entity.ResumenInscripcionMq;
@@ -64,6 +65,16 @@ public class ResumenInscripcionMqService {
 
         ResumenInscripcionMq guardado = resumenInscripcionMqRepository.save(resumen);
         return Optional.of(toResponse(guardado));
+    }
+
+    public ResumenInscripcionMqProducerResponse responseProductor(Long numeroResumen) {
+        return new ResumenInscripcionMqProducerResponse(
+                "Resumen enviado correctamente a RabbitMQ",
+                numeroResumen,
+                queueName,
+                exchangeName,
+                RabbitMQConfig.RESUMEN_ROUTING_KEY
+        );
     }
 
     private ResumenInscripcionMqResponse toResponse(ResumenInscripcionMq resumen) {

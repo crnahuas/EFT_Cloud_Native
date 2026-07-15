@@ -2,6 +2,7 @@ package cl.duoc.cdy2204.formativa.controller;
 
 import cl.duoc.cdy2204.formativa.dto.InscripcionRequest;
 import cl.duoc.cdy2204.formativa.dto.InscripcionResponse;
+import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqProducerResponse;
 import cl.duoc.cdy2204.formativa.dto.ResumenInscripcionMqResponse;
 import cl.duoc.cdy2204.formativa.service.InscripcionService;
 import cl.duoc.cdy2204.formativa.service.ResumenInscripcionService;
@@ -57,6 +58,13 @@ public class InscripcionController {
                 .contentType(MediaType.TEXT_PLAIN)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .body(archivo);
+    }
+
+    @PostMapping("/{numeroResumen}/resumenes-mq/producir")
+    public ResponseEntity<ResumenInscripcionMqProducerResponse> producirResumenMq(
+            @PathVariable @Positive Long numeroResumen
+    ) {
+        return ResponseEntity.ok(resumenInscripcionService.publicarResumenEnCola(numeroResumen));
     }
 
     @PostMapping("/resumenes-mq/consumir")

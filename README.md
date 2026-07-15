@@ -2,7 +2,7 @@
 
 Este repositorio contiene una solucion cloud native para una plataforma educativa de cursos virtuales. La Semana 7 integra RabbitMQ para enviar y consumir mensajes asincronos asociados al resumen de inscripcion.
 
-La aplicacion no incluye frontend. El foco del trabajo esta en el backend, la persistencia cloud, RabbitMQ, la imagen Docker, el despliegue automatico hacia AWS EC2 mediante GitHub Actions y la autenticacion JWT.
+La aplicacion incluye un backend Spring Boot y un cliente HTML simple para pruebas de la entrega final. El foco del trabajo esta en la persistencia cloud, RabbitMQ, la imagen Docker, el despliegue automatico hacia AWS EC2 mediante GitHub Actions y la autenticacion JWT.
 
 ## Endpoints requeridos
 
@@ -12,6 +12,7 @@ La aplicacion no incluye frontend. El foco del trabajo esta en el backend, la pe
 | POST | `/cursos` | Agrega un nuevo curso y lo persiste en Oracle Cloud. |
 | POST | `/inscripciones` | Inscribe un estudiante en uno o mas cursos, calcula el total y persiste la inscripcion en Oracle Cloud. |
 | GET | `/inscripciones/{numeroResumen}/resumen` | Genera y descarga el archivo fisico `resumen.txt` de una inscripcion. |
+| POST | `/inscripciones/{numeroResumen}/resumenes-mq/producir` | Publica explicitamente un resumen en RabbitMQ. |
 | POST | `/inscripciones/resumenes-mq/consumir` | Consume un resumen desde RabbitMQ y lo guarda en Oracle Cloud. |
 | POST | `/s3/uploadResumen?numeroResumen=1` | Sube el resumen a AWS S3 en la carpeta `numeroResumen/`. |
 | PUT | `/s3/updateResumen?numeroResumen=1` | Reemplaza un resumen existente en AWS S3. |
@@ -70,6 +71,7 @@ export RABBITMQ_USERNAME='guest'
 export RABBITMQ_PASSWORD='guest'
 
 export AZURE_B2C_ISSUER_URI='ISSUER_DEL_USER_FLOW_DE_SEMANA_4'
+export APP_CORS_ALLOWED_ORIGINS='*'
 ```
 
 Si las credenciales AWS ya estan guardadas como GitHub Secrets, el bucket se puede crear desde GitHub Actions:
@@ -110,6 +112,16 @@ docker compose up -d rabbitmq
 ```
 
 La consola queda disponible en `http://localhost:15672` con usuario `guest` y password `guest`.
+
+## Cliente de pruebas
+
+Para la entrega final EFT se incluye un cliente HTML simple en:
+
+[docs/frontend/index.html](docs/frontend/index.html)
+
+Puede abrirse directamente en el navegador. Permite configurar la URL base de
+API Gateway o EC2, pegar un JWT emitido por Azure AD B2C y ejecutar el flujo de
+cursos, inscripciones, RabbitMQ y S3.
 
 ## Probar con curl
 
@@ -159,6 +171,13 @@ Generar y descargar el resumen fisico:
 curl --location 'http://localhost:8080/inscripciones/1/resumen' \
   --header "Authorization: Bearer $ACCESS_TOKEN" \
   --output resumen.txt
+```
+
+Publicar explicitamente el resumen en RabbitMQ:
+
+```bash
+curl --request POST 'http://localhost:8080/inscripciones/1/resumenes-mq/producir' \
+  --header "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 Consumir el resumen desde RabbitMQ y guardarlo en Oracle Cloud:
@@ -231,3 +250,9 @@ Coleccion Postman especifica para probar los endpoints publicados en API Gateway
 La guia de RabbitMQ, flujo de prueba y evidencias sugeridas esta en:
 
 [docs/SEMANA7_RABBITMQ.md](docs/SEMANA7_RABBITMQ.md)
+
+## Documentacion de entrega Semana 9 EFT
+
+La preparacion final de la entrega transversal esta en:
+
+[docs/SEMANA9_EFT_ENTREGA.md](docs/SEMANA9_EFT_ENTREGA.md)
