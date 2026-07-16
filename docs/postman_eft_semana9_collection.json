@@ -1,0 +1,918 @@
+{
+  "info": {
+    "name": "CDY2204 EFT Semana 9 - Evidencia completa",
+    "description": "Coleccion final para probar la EFT Cloud Native. Configura accessToken con un JWT Azure AD B2C vigente. Ejecutar primero seguridad, luego flujo principal, despues evidencias externas y errores.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://107.23.174.145:8080",
+      "description": "URL activa para el flujo principal. Puede ser EC2 o API Gateway."
+    },
+    {
+      "key": "ec2Url",
+      "value": "http://107.23.174.145:8080",
+      "description": "Backend directo en EC2."
+    },
+    {
+      "key": "apiGatewayUrl",
+      "value": "https://f3k22g500d.execute-api.us-east-1.amazonaws.com",
+      "description": "URL de API Gateway. Cambiar si AWS genero otra URL."
+    },
+    {
+      "key": "rabbitUrl",
+      "value": "http://107.23.174.145:15672",
+      "description": "RabbitMQ Management en EC2."
+    },
+    {
+      "key": "rabbitUser",
+      "value": "guest"
+    },
+    {
+      "key": "rabbitPassword",
+      "value": "guest"
+    },
+    {
+      "key": "accessToken",
+      "value": "PEGAR_JWT_AZURE_B2C_AQUI",
+      "description": "Pegar token sin la palabra Bearer."
+    },
+    {
+      "key": "cursoId",
+      "value": "1"
+    },
+    {
+      "key": "numeroResumen",
+      "value": "1"
+    },
+    {
+      "key": "estudianteNombre",
+      "value": "Maria Perez"
+    },
+    {
+      "key": "estudianteEmail",
+      "value": "maria.perez@duocuc.cl"
+    },
+    {
+      "key": "queueName",
+      "value": "resumen.inscripcion.queue"
+    },
+    {
+      "key": "exchangeName",
+      "value": "resumen.inscripcion.exchange"
+    },
+    {
+      "key": "routingKey",
+      "value": "resumen.inscripcion.key"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// La mayoria de requests hereda Bearer {{accessToken}} desde la coleccion.",
+          "// Las pruebas sin token y RabbitMQ Management definen su propio auth."
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Seguridad e infraestructura base",
+      "description": "Pruebas rapidas para demostrar proteccion JWT y disponibilidad base.",
+      "item": [
+        {
+          "name": "00.1 EC2 sin token debe responder 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{ec2Url}}/cursos",
+            "description": "Evidencia: Spring Security protege el backend directo.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sin token responde 401 Unauthorized', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.2 EC2 con token debe responder 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{ec2Url}}/cursos",
+            "description": "Evidencia: JWT Azure AD B2C es aceptado por Spring Security."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Con token responde 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Respuesta JSON', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.3 API Gateway sin token debe responder 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{apiGatewayUrl}}/cursos",
+            "description": "Evidencia opcional: API Gateway enruta hacia backend protegido. Si no se usa Gateway, omitir.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sin token responde 401 Unauthorized', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.4 API Gateway con token debe responder 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{apiGatewayUrl}}/cursos",
+            "description": "Evidencia opcional: endpoints publicados en API Gateway con JWT."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Con token responde 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Flujo principal EFT",
+      "description": "Ejecutar de arriba hacia abajo. Guarda cursoId y numeroResumen automaticamente.",
+      "item": [
+        {
+          "name": "01.1 Crear curso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/cursos",
+            "description": "Evidencia: microservicio Spring Boot devuelve JSON y persiste curso en Oracle.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"EFT Cloud Native Spring Boot\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Curso creado con id', function () { pm.expect(data.id).to.exist; });",
+                  "pm.collectionVariables.set('cursoId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.2 Listar cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cursos",
+            "description": "Evidencia: consulta de cursos en JSON."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Respuesta es lista', function () { pm.expect(data).to.be.an('array'); });",
+                  "pm.test('Lista contiene cursos', function () { pm.expect(data.length).to.be.greaterThan(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3 Crear inscripcion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/inscripciones",
+            "description": "Evidencia: inscripcion persiste en Oracle y devuelve total calculado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudianteNombre\": \"{{estudianteNombre}}\",\n  \"estudianteEmail\": \"{{estudianteEmail}}\",\n  \"cursoIds\": [{{cursoId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "const id = data.inscripcionId || data.id;",
+                  "pm.test('Inscripcion creada con id', function () { pm.expect(id).to.exist; });",
+                  "pm.test('Total calculado', function () { pm.expect(Number(data.totalPagar || data.total)).to.be.greaterThan(0); });",
+                  "pm.collectionVariables.set('numeroResumen', String(id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.4 Generar y descargar resumen local",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/inscripciones/{{numeroResumen}}/resumen",
+            "description": "Evidencia: genera archivo fisico resumen.txt y lo descarga."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Resumen contiene estudiante', function () { pm.expect(pm.response.text()).to.include(pm.collectionVariables.get('estudianteNombre')); });",
+                  "pm.test('Header de descarga presente', function () { pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.5 RabbitMQ producir resumen",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/inscripciones/{{numeroResumen}}/resumenes-mq/producir",
+            "description": "Evidencia: endpoint productor publica mensaje en RabbitMQ."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Mensaje publicado para numeroResumen actual', function () { pm.expect(data.numeroResumen).to.eql(Number(pm.collectionVariables.get('numeroResumen'))); });",
+                  "pm.test('Datos RabbitMQ presentes', function () { pm.expect(data.cola).to.exist; pm.expect(data.exchange).to.exist; pm.expect(data.routingKey).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.6 RabbitMQ consumir resumen y guardar en Oracle",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/inscripciones/resumenes-mq/consumir",
+            "description": "Evidencia: endpoint consumidor toma mensaje de RabbitMQ y guarda en Oracle."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Registro procesado con id', function () { pm.expect(data.id).to.exist; });",
+                  "pm.test('Numero resumen coincide', function () { pm.expect(data.numeroResumen).to.eql(Number(pm.collectionVariables.get('numeroResumen'))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.7 S3 subir resumen generado",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/s3/uploadResumen?numeroResumen={{numeroResumen}}",
+            "description": "Evidencia: almacenamiento cloud S3 crea objeto numeroResumen/resumen.txt."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Bucket y clave presentes', function () { pm.expect(data.bucket).to.exist; pm.expect(data.clave).to.eql(pm.collectionVariables.get('numeroResumen') + '/resumen.txt'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.8 S3 actualizar resumen generado",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/s3/updateResumen?numeroResumen={{numeroResumen}}",
+            "description": "Evidencia: reemplazo de objeto existente en S3."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Clave actualizada coincide', function () { pm.expect(data.clave).to.eql(pm.collectionVariables.get('numeroResumen') + '/resumen.txt'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.9 S3 descargar resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/s3/downloadResumen?numeroResumen={{numeroResumen}}",
+            "description": "Evidencia: descarga de objeto desde almacenamiento cloud."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contenido incluye estudiante', function () { pm.expect(pm.response.text()).to.include(pm.collectionVariables.get('estudianteNombre')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.10 S3 eliminar resumen",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/s3/deleteResumen?numeroResumen={{numeroResumen}}",
+            "description": "Evidencia opcional: limpieza del objeto de S3. Ejecutar despues de capturar evidencia del bucket."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Clave eliminada coincide', function () { pm.expect(data.clave).to.eql(pm.collectionVariables.get('numeroResumen') + '/resumen.txt'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Evidencia RabbitMQ Management",
+      "description": "Requests directas al panel HTTP de RabbitMQ para capturas de cola, exchange y mensajes.",
+      "item": [
+        {
+          "name": "02.1 RabbitMQ overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitUrl}}/api/overview",
+            "description": "Evidencia: RabbitMQ esta activo en EC2.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Version RabbitMQ presente', function () { pm.expect(data.rabbitmq_version).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.2 Ver cola de resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitUrl}}/api/queues/%2F/{{queueName}}",
+            "description": "Evidencia: cola durable usada por la app.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Nombre de cola correcto', function () { pm.expect(data.name).to.eql(pm.collectionVariables.get('queueName')); });",
+                  "pm.test('Muestra conteo de mensajes', function () { pm.expect(data.messages).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.3 Ver exchange de resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitUrl}}/api/exchanges/%2F/{{exchangeName}}",
+            "description": "Evidencia: exchange directo usado por la app.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Exchange correcto', function () { pm.expect(data.name).to.eql(pm.collectionVariables.get('exchangeName')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.4 Ver bindings de cola",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitUrl}}/api/queues/%2F/{{queueName}}/bindings",
+            "description": "Evidencia: binding entre exchange y cola.",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Respuesta es lista de bindings', function () { pm.expect(data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Errores controlados",
+      "description": "Pruebas para demostrar validaciones y seguridad.",
+      "item": [
+        {
+          "name": "03.1 Crear curso invalido debe responder 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/cursos",
+            "description": "Evidencia: validacion de entrada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.2 Inscripcion con curso inexistente debe responder 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/inscripciones",
+            "description": "Evidencia: error de negocio controlado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudianteNombre\": \"Juan Soto\",\n  \"estudianteEmail\": \"juan.soto@duocuc.cl\",\n  \"cursoIds\": [\n    999999\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.3 Consumir RabbitMQ sin mensajes debe responder 204 o 200",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/inscripciones/resumenes-mq/consumir",
+            "description": "Evidencia opcional: si la cola esta vacia, el backend responde sin contenido. Ejecutar solo despues de consumir todo."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status esperado cuando no hay mensajes', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Checklist de capturas",
+      "description": "No son requests obligatorias: usar como pauta para evidencias del informe y video.",
+      "item": [
+        {
+          "name": "04.1 Capturas requeridas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cursos",
+            "description": "Capturar: GitHub Actions verde, EC2 docker ps, Azure AD B2C user flow, API Gateway rutas, RabbitMQ cola/exchange, Oracle RESUMENES_INSCRIPCION_MQ, S3 objeto numeroResumen/resumen.txt, Postman 401 sin token y 200 con token."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Checklist visible', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -20,15 +20,18 @@ inscripciones, seguridad JWT, Oracle Cloud, S3, RabbitMQ, Docker y despliegue.
 ## Flujo final recomendado
 
 1. Obtener un JWT vigente desde Azure AD B2C.
-2. Abrir `docs/frontend/index.html` en el navegador.
-3. Configurar la URL base de API Gateway o EC2.
-4. Pegar el JWT.
+2. Importar `docs/postman_eft_semana9_collection.json` en Postman.
+3. Configurar `accessToken` con el JWT vigente.
+4. Configurar `baseUrl` con EC2 o API Gateway.
 5. Crear un curso.
 6. Crear una inscripcion.
 7. Generar el resumen.
 8. Publicar el resumen en RabbitMQ.
 9. Consumir el mensaje y guardar el resultado en Oracle Cloud.
 10. Subir, descargar o eliminar el resumen en S3.
+
+Como cliente visual opcional tambien se puede abrir `docs/frontend/index.html`
+en el navegador.
 
 ## Endpoints finales
 
@@ -53,5 +56,6 @@ inscripciones, seguridad JWT, Oracle Cloud, S3, RabbitMQ, Docker y despliegue.
 - API Manager: mostrar rutas en API Gateway y prueba por URL Gateway.
 - S3: mostrar bucket y objeto `numeroResumen/resumen.txt`.
 - CI/CD: mostrar GitHub Actions desplegando en EC2.
+- Postman: usar `docs/postman_eft_semana9_collection.json` como flujo final.
 - Documentacion: incluir este archivo y las guias de configuracion.
 - Video: recorrer el flujo final en menos de 10 minutos.

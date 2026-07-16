@@ -245,6 +245,10 @@ Coleccion Postman especifica para probar los endpoints publicados en API Gateway
 
 [docs/postman_api_gateway_semana5_collection.json](docs/postman_api_gateway_semana5_collection.json)
 
+Coleccion Postman final para la EFT Semana 9:
+
+[docs/postman_eft_semana9_collection.json](docs/postman_eft_semana9_collection.json)
+
 ## Documentacion de entrega Semana 7
 
 La guia de RabbitMQ, flujo de prueba y evidencias sugeridas esta en:
