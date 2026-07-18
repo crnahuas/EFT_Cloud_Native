@@ -45,7 +45,6 @@ public class ResumenInscripcionService {
         try {
             Files.createDirectories(carpetaResumen);
             Files.writeString(archivoResumen, contenido, StandardCharsets.UTF_8);
-            resumenInscripcionMqService.enviarResumen(inscripcion, contenido);
             return archivoResumen;
         } catch (IOException exception) {
             throw new ArchivoStorageException("No fue posible generar el archivo fisico del resumen", exception);
