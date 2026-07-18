@@ -162,6 +162,8 @@ jobs:
             docker stop "$FRONTEND_IMAGE_NAME" || true
             docker rm "$FRONTEND_IMAGE_NAME" || true
             docker rm formativa-frontend || true
+            docker stop formativa-rabbitmq || true
+            docker rm formativa-rabbitmq || true
 
             if docker compose version >/dev/null 2>&1; then
               COMPOSE="docker compose"

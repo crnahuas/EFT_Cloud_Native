@@ -129,6 +129,8 @@ la consola de administracion en el puerto `15672`.
 Ademas, RabbitMQ carga `rabbitmq/definitions.json` al iniciar para crear
 automaticamente la cola, el exchange y el binding aunque el backend todavia no
 haya publicado mensajes.
+Para la demostracion academica se habilita el acceso remoto del usuario `guest`
+en `rabbitmq/rabbitmq.conf`.
 
 ## Frontend de pruebas
 
