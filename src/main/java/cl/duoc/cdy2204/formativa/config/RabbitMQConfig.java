@@ -1,6 +1,7 @@
 package cl.duoc.cdy2204.formativa.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -40,6 +41,11 @@ public class RabbitMQConfig {
                 .bind(resumenQueue)
                 .to(resumenExchange)
                 .with(routingKey);
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     @Bean
