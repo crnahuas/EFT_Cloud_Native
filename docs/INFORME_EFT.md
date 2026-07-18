@@ -124,6 +124,19 @@ Configuracion usada:
 | Routing key | `resumen.inscripcion.key` |
 | Contenedor | `formativa-rabbitmq` |
 | Consola | `http://IP_EC2:15672` |
+| Conexion backend | `rabbitmq:5672` dentro de la red Docker |
+
+Variables configuradas:
+
+| Variable | Valor usado |
+| --- | --- |
+| `RABBITMQ_HOST` | `rabbitmq` en EC2 |
+| `RABBITMQ_PORT` | `5672` |
+| `RABBITMQ_USERNAME` | Secret o `guest` |
+| `RABBITMQ_PASSWORD` | Secret o `guest` |
+| `RABBITMQ_RESUMEN_QUEUE` | `resumen.inscripcion.queue` |
+| `RABBITMQ_RESUMEN_EXCHANGE` | `resumen.inscripcion.exchange` |
+| `RABBITMQ_RESUMEN_ROUTING_KEY` | `resumen.inscripcion.key` |
 
 El flujo demostrado es:
 
@@ -203,6 +216,7 @@ Servicios desplegados:
 | Frontend | `formativa-frontend` | `3000` |
 | Backend | `formativa-cloud-native` | `8080` |
 | RabbitMQ Management | `formativa-rabbitmq` | `15672` |
+| RabbitMQ AMQP | `formativa-rabbitmq` | `5672` interno Docker |
 
 ## 13. Pruebas
 

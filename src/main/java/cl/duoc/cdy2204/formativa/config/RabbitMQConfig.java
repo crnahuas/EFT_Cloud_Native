@@ -30,11 +30,15 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    Binding resumenBinding(Queue resumenQueue, DirectExchange resumenExchange) {
+    Binding resumenBinding(
+            Queue resumenQueue,
+            DirectExchange resumenExchange,
+            @Value("${app.rabbitmq.resumen.routing-key:" + RESUMEN_ROUTING_KEY + "}") String routingKey
+    ) {
         return BindingBuilder
                 .bind(resumenQueue)
                 .to(resumenExchange)
-                .with(RESUMEN_ROUTING_KEY);
+                .with(routingKey);
     }
 
     @Bean

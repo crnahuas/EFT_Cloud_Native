@@ -21,17 +21,20 @@ public class ResumenInscripcionMqService {
     private final ResumenInscripcionMqRepository resumenInscripcionMqRepository;
     private final String exchangeName;
     private final String queueName;
+    private final String routingKey;
 
     public ResumenInscripcionMqService(
             RabbitTemplate rabbitTemplate,
             ResumenInscripcionMqRepository resumenInscripcionMqRepository,
             @Value("${app.rabbitmq.resumen.exchange:" + RabbitMQConfig.RESUMEN_EXCHANGE + "}") String exchangeName,
-            @Value("${app.rabbitmq.resumen.queue:" + RabbitMQConfig.RESUMEN_QUEUE + "}") String queueName
+            @Value("${app.rabbitmq.resumen.queue:" + RabbitMQConfig.RESUMEN_QUEUE + "}") String queueName,
+            @Value("${app.rabbitmq.resumen.routing-key:" + RabbitMQConfig.RESUMEN_ROUTING_KEY + "}") String routingKey
     ) {
         this.rabbitTemplate = rabbitTemplate;
         this.resumenInscripcionMqRepository = resumenInscripcionMqRepository;
         this.exchangeName = exchangeName;
         this.queueName = queueName;
+        this.routingKey = routingKey;
     }
 
     public void enviarResumen(Inscripcion inscripcion, String contenidoResumen) {
@@ -43,7 +46,7 @@ public class ResumenInscripcionMqService {
         mensaje.setTotal(inscripcion.getTotal());
         mensaje.setContenidoResumen(contenidoResumen);
 
-        rabbitTemplate.convertAndSend(exchangeName, RabbitMQConfig.RESUMEN_ROUTING_KEY, mensaje);
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, mensaje);
     }
 
     @Transactional
@@ -73,7 +76,7 @@ public class ResumenInscripcionMqService {
                 numeroResumen,
                 queueName,
                 exchangeName,
-                RabbitMQConfig.RESUMEN_ROUTING_KEY
+                routingKey
         );
     }
 

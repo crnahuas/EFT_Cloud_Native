@@ -44,6 +44,7 @@ nombrar las imagenes con el numero indicado para que el orden sea claro.
 | 20 | Backend EC2 | `http://IP_EC2:8080/cursos` funcionando con JWT. |
 | 21 | Frontend EC2 | `http://IP_EC2:3000` cargando la interfaz. |
 | 22 | Security Group | Puertos necesarios abiertos: `8080`, `3000`, `15672` y `22`. |
+| 22B | Variables RabbitMQ | `RABBITMQ_HOST=rabbitmq`, `RABBITMQ_PORT=5672`, cola, exchange y routing key en secrets/env. |
 
 ## 5. Flujo funcional Postman
 
@@ -74,6 +75,16 @@ objeto en el bucket, tomar la captura antes de ejecutar `DELETE /s3/deleteResume
 | 35 | Binding | Routing key `resumen.inscripcion.key`. |
 | 36 | Mensaje pendiente | Mensaje publicado antes de consumir. |
 | 37 | Mensaje consumido | Cola vacia o conteo actualizado despues del consumo. |
+
+Valores esperados para la captura de configuracion:
+
+```text
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_RESUMEN_QUEUE=resumen.inscripcion.queue
+RABBITMQ_RESUMEN_EXCHANGE=resumen.inscripcion.exchange
+RABBITMQ_RESUMEN_ROUTING_KEY=resumen.inscripcion.key
+```
 
 ## 7. Oracle Cloud
 

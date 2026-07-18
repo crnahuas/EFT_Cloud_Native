@@ -69,6 +69,9 @@ export RABBITMQ_HOST='localhost'
 export RABBITMQ_PORT='5672'
 export RABBITMQ_USERNAME='guest'
 export RABBITMQ_PASSWORD='guest'
+export RABBITMQ_RESUMEN_QUEUE='resumen.inscripcion.queue'
+export RABBITMQ_RESUMEN_EXCHANGE='resumen.inscripcion.exchange'
+export RABBITMQ_RESUMEN_ROUTING_KEY='resumen.inscripcion.key'
 
 export AZURE_B2C_ISSUER_URI='ISSUER_DEL_USER_FLOW_DE_SEMANA_4'
 export APP_CORS_ALLOWED_ORIGINS='*'
@@ -91,6 +94,12 @@ AWS_SECRET_ACCESS_KEY
 AWS_SESSION_TOKEN
 AWS_S3_BUCKET_NAME
 AZURE_B2C_ISSUER_URI
+APP_CORS_ALLOWED_ORIGINS
+RABBITMQ_USERNAME
+RABBITMQ_PASSWORD
+RABBITMQ_RESUMEN_QUEUE
+RABBITMQ_RESUMEN_EXCHANGE
+RABBITMQ_RESUMEN_ROUTING_KEY
 ```
 
 Compilar y ejecutar pruebas:
@@ -112,6 +121,11 @@ docker compose up -d rabbitmq
 ```
 
 La consola queda disponible en `http://localhost:15672` con usuario `guest` y password `guest`.
+La aplicacion usa la cola `resumen.inscripcion.queue`, el exchange
+`resumen.inscripcion.exchange` y la routing key `resumen.inscripcion.key`. En
+EC2, el backend se conecta a RabbitMQ por la red interna Docker usando
+`RABBITMQ_HOST=rabbitmq` y `RABBITMQ_PORT=5672`; hacia internet solo se expone
+la consola de administracion en el puerto `15672`.
 
 ## Frontend de pruebas
 

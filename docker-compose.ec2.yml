@@ -38,6 +38,9 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_RESUMEN_QUEUE: ${RABBITMQ_RESUMEN_QUEUE:-resumen.inscripcion.queue}
+      RABBITMQ_RESUMEN_EXCHANGE: ${RABBITMQ_RESUMEN_EXCHANGE:-resumen.inscripcion.exchange}
+      RABBITMQ_RESUMEN_ROUTING_KEY: ${RABBITMQ_RESUMEN_ROUTING_KEY:-resumen.inscripcion.key}
 
   frontend:
     image: ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE_NAME:-my-app-frontend}:latest

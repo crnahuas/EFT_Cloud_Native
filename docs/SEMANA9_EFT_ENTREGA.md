@@ -59,6 +59,19 @@ navegador o usar el contenedor `formativa-frontend` en el puerto `3000`.
 | Frontend | `formativa-frontend` | `3000` |
 | Backend Spring Boot | `formativa-cloud-native` | `8080` |
 | RabbitMQ Management | `formativa-rabbitmq` | `15672` |
+| RabbitMQ AMQP interno | `formativa-rabbitmq` | `5672` interno Docker |
+
+Configuracion RabbitMQ usada por el backend:
+
+| Variable | Valor |
+| --- | --- |
+| `RABBITMQ_HOST` | `rabbitmq` en EC2, `localhost` local |
+| `RABBITMQ_PORT` | `5672` |
+| `RABBITMQ_USERNAME` | `guest` o secret definido |
+| `RABBITMQ_PASSWORD` | `guest` o secret definido |
+| `RABBITMQ_RESUMEN_QUEUE` | `resumen.inscripcion.queue` |
+| `RABBITMQ_RESUMEN_EXCHANGE` | `resumen.inscripcion.exchange` |
+| `RABBITMQ_RESUMEN_ROUTING_KEY` | `resumen.inscripcion.key` |
 
 ## Evidencia para la pauta
 

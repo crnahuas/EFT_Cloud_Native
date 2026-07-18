@@ -97,7 +97,8 @@ class ResumenInscripcionMqServiceTest {
                 rabbitTemplate,
                 resumenInscripcionMqRepository,
                 RabbitMQConfig.RESUMEN_EXCHANGE,
-                RabbitMQConfig.RESUMEN_QUEUE
+                RabbitMQConfig.RESUMEN_QUEUE,
+                RabbitMQConfig.RESUMEN_ROUTING_KEY
         );
     }
 
