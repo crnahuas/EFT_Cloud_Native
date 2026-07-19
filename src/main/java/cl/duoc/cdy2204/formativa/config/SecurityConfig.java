@@ -43,14 +43,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> {
                     if (rolesEnabled) {
                         authorize
-                                .requestMatchers(HttpMethod.POST, "/cursos/**").hasRole("INSTRUCTOR")
+                                .requestMatchers(HttpMethod.POST, "/cursos", "/cursos/**").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.POST, "/calificaciones").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.POST, "/inscripciones/*/resumenes-mq/producir").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.POST, "/inscripciones/resumenes-mq/consumir").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.POST, "/s3/uploadResumen").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.PUT, "/s3/updateResumen").hasRole("INSTRUCTOR")
                                 .requestMatchers(HttpMethod.DELETE, "/s3/deleteResumen").hasRole("INSTRUCTOR")
-                                .requestMatchers(HttpMethod.GET, "/cursos/**").hasAnyRole("ESTUDIANTE", "INSTRUCTOR")
+                                .requestMatchers(HttpMethod.GET, "/cursos", "/cursos/**").hasAnyRole("ESTUDIANTE", "INSTRUCTOR")
                                 .requestMatchers(HttpMethod.POST, "/inscripciones").hasAnyRole("ESTUDIANTE", "INSTRUCTOR")
                                 .requestMatchers(HttpMethod.GET, "/inscripciones/*/resumen").hasAnyRole("ESTUDIANTE", "INSTRUCTOR")
                                 .requestMatchers(HttpMethod.GET, "/calificaciones").hasAnyRole("ESTUDIANTE", "INSTRUCTOR")
