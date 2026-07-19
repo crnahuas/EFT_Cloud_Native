@@ -1,182 +1,140 @@
 {
   "info": {
     "_postman_id": "9b75a7d3-e7cb-4d3d-a6bd-e42b02f22024",
-    "name": "CDY2204 EFT - Captura de evidencias",
-    "description": "Coleccion reducida solo para capturar evidencias de la EFT. Configura ec2Url, apiGatewayUrl, instructorToken y estudianteToken. Ejecutar en orden para generar datos en Oracle, validar roles, API Gateway, RabbitMQ y S3.",
+    "name": "CDY2204 EFT - Guion Kaltura Grupo 3",
+    "description": "Coleccion ajustada al guion EFT_Grupo3_Guion_Video_Kaltura.docx. Ejecutar 00 antes de grabar si el ambiente esta limpio. Durante el video mostrar 01 Seguridad, 02 Flujo academico, 03 RabbitMQ y 04 S3 segun los tiempos del guion.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "ec2Url",
       "value": "http://107.23.174.145:8080",
-      "type": "string"
+      "type": "string",
+      "description": "Backend directo en EC2, puerto 8080."
     },
     {
       "key": "apiGatewayUrl",
       "value": "https://CAMBIAR.execute-api.us-east-1.amazonaws.com",
-      "type": "string"
+      "type": "string",
+      "description": "URL real de AWS API Gateway; se muestra en consola durante el bloque 3:05-4:00."
     },
     {
       "key": "rabbitUrl",
       "value": "http://107.23.174.145:15672",
-      "type": "string"
+      "type": "string",
+      "description": "RabbitMQ Management en EC2, puerto 15672."
     },
     {
       "key": "rabbitUser",
       "value": "guest",
-      "type": "string"
+      "type": "string",
+      "description": "Usuario RabbitMQ Management."
     },
     {
       "key": "rabbitPassword",
       "value": "guest",
-      "type": "string"
+      "type": "string",
+      "description": "Password RabbitMQ Management."
     },
     {
       "key": "instructorToken",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "JWT Azure AD B2C con extension_Rol=INSTRUCTOR, sin prefijo Bearer."
     },
     {
       "key": "estudianteToken",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "JWT Azure AD B2C con extension_Rol=ESTUDIANTE, sin prefijo Bearer."
     },
     {
       "key": "cursoId",
       "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "contenidoId",
-      "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Curso usado para inscripcion e intento de examen. La preparacion previa lo actualiza."
     },
     {
       "key": "examenId",
-      "value": "",
-      "type": "string"
+      "value": "1",
+      "type": "string",
+      "description": "Examen asociado al cursoId. La preparacion previa lo actualiza."
     },
     {
-      "key": "numeroResumen",
-      "value": "1",
-      "type": "string"
+      "key": "cursoSeguridadId",
+      "value": "",
+      "type": "string",
+      "description": "Curso creado solo como evidencia 24 del bloque de seguridad."
     },
     {
       "key": "inscripcionId",
-      "value": "1",
-      "type": "string"
+      "value": "",
+      "type": "string",
+      "description": "Se actualiza en la evidencia 29."
+    },
+    {
+      "key": "numeroResumen",
+      "value": "",
+      "type": "string",
+      "description": "Mismo valor que inscripcionId para RabbitMQ y S3."
+    },
+    {
+      "key": "intentoId",
+      "value": "",
+      "type": "string",
+      "description": "Se actualiza en la evidencia 30."
     },
     {
       "key": "calificacionId",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Se actualiza al finalizar el intento en la evidencia 31."
     },
     {
-      "key": "queueName",
-      "value": "resumen.inscripcion.queue",
-      "type": "string"
+      "key": "estudianteNombre",
+      "value": "Maria Perez",
+      "type": "string",
+      "description": "Estudiante usado durante la demo."
     },
     {
-      "key": "exchangeName",
-      "value": "resumen.inscripcion.exchange",
-      "type": "string"
-    },
-    {
-      "key": "routingKey",
-      "value": "resumen.inscripcion.key",
-      "type": "string"
-    },
-    {
-      "key": "intentoId",
-      "value": "1",
-      "type": "string"
+      "key": "estudianteEmail",
+      "value": "maria.perez@duocuc.cl",
+      "type": "string",
+      "description": "Email usado durante la demo."
     },
     {
       "key": "puntajeObtenido",
       "value": "92",
-      "type": "string"
+      "type": "string",
+      "description": "Puntaje usado al finalizar examen."
+    },
+    {
+      "key": "queueName",
+      "value": "resumen.inscripcion.queue",
+      "type": "string",
+      "description": "Cola RabbitMQ del guion."
+    },
+    {
+      "key": "exchangeName",
+      "value": "resumen.inscripcion.exchange",
+      "type": "string",
+      "description": "Exchange RabbitMQ del guion."
+    },
+    {
+      "key": "routingKey",
+      "value": "resumen.inscripcion.key",
+      "type": "string",
+      "description": "Routing key RabbitMQ del guion."
     }
   ],
   "item": [
     {
-      "name": "00 - Seguridad y roles",
-      "description": "Capturas para demostrar 401 sin token, 403 con rol insuficiente y 201 con rol INSTRUCTOR.",
+      "name": "00 - Preparacion previa (no grabar)",
+      "description": "Ejecutar antes de iniciar Kaltura si no existe un curso con examen asociado. Deja cursoId y examenId listos para el bloque 5:00-6:05.",
       "item": [
         {
-          "name": "00.1 EC2 sin token debe responder 401",
+          "name": "00.1 Crear curso base para examen",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/cursos",
-            "description": "Capturar respuesta 401 Unauthorized sin Bearer Token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('401 sin token', function () { pm.response.to.have.status(401); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "00.2 ESTUDIANTE lista cursos debe responder 200",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/cursos",
-            "description": "Capturar que el rol ESTUDIANTE puede consultar cursos."
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (!pm.collectionVariables.get('estudianteToken')) { throw new Error('Falta estudianteToken'); }"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('200 con token ESTUDIANTE', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "00.3 ESTUDIANTE crea curso debe responder 403",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -185,6 +143,207 @@
                 "type": "text"
               }
             ],
+            "url": "{{ec2Url}}/cursos",
+            "description": "No grabar. Crea el curso que se usara para inscripcion e intento.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{instructorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Curso base demo Kaltura\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Curso base creado', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('cursoId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.2 Crear examen base para intento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{ec2Url}}/cursos/{{cursoId}}/examenes",
+            "description": "No grabar. Crea el examen requerido por POST /examenes/{examenId}/intentos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{instructorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Evaluacion Cloud Native Kaltura\",\n  \"descripcion\": \"Examen usado para demostrar inicio, finalizacion y calificacion automatica.\",\n  \"fechaDisponible\": \"2026-07-19T20:00:00\",\n  \"puntajeMaximo\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Examen base creado', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('examenId', String(data.id));",
+                  "pm.test('Examen asociado al curso base', function () { pm.expect(String(data.cursoId)).to.eql(pm.collectionVariables.get('cursoId')); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Seguridad por roles (4:00-5:00)",
+      "description": "Bloque Felipe: evidencias 21, 22, 23 y 24 del guion. Mostrar 401, 200, 403 y 201 en Postman.",
+      "item": [
+        {
+          "name": "01.1 Evidencia 21 - Sin token responde 401",
+          "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/cursos",
+            "description": "Zero Trust: el backend rechaza una solicitud anonima.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized sin token', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.2 Evidencia 22 - ESTUDIANTE consulta cursos 200",
+          "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/cursos",
+            "description": "El rol ESTUDIANTE puede consultar cursos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{estudianteToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK con token estudiante', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Respuesta es arreglo JSON', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3 Evidencia 23 - ESTUDIANTE crea curso 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{ec2Url}}/cursos",
+            "description": "El rol ESTUDIANTE no puede gestionar cursos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{estudianteToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Curso bloqueado por rol estudiante\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"2 horas\",\n  \"costo\": 1000\n}",
@@ -193,54 +352,7 @@
                   "language": "json"
                 }
               }
-            },
-            "url": "{{ec2Url}}/cursos",
-            "description": "Capturar 403 Forbidden para demostrar permisos diferenciados."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('403 por rol insuficiente', function () { pm.response.to.have.status(403); });"
-                ]
-              }
             }
-          ]
-        },
-        {
-          "name": "00.4 INSTRUCTOR crea curso debe responder 201",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{instructorToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"EFT Cloud Native Spring Boot\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{ec2Url}}/cursos",
-            "description": "Capturar 201 Created con token INSTRUCTOR. La respuesta guarda cursoId para las siguientes evidencias."
           },
           "event": [
             {
@@ -248,7 +360,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.collectionVariables.get('instructorToken')) { throw new Error('Falta instructorToken'); }"
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
                 ]
               }
             },
@@ -257,9 +370,65 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('201 con token INSTRUCTOR', function () { pm.response.to.have.status(201); });",
+                  "pm.test('403 Forbidden por rol insuficiente', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.4 Evidencia 24 - INSTRUCTOR crea curso 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{ec2Url}}/cursos",
+            "description": "El rol INSTRUCTOR puede ejecutar la misma operacion y recibe 201 Created. Este curso es solo evidencia de seguridad.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{instructorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Curso evidencia rol instructor\",\n  \"instructor\": \"Docente CDY2204\",\n  \"duracion\": \"24 horas\",\n  \"costo\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created con token instructor', function () { pm.response.to.have.status(201); });",
                   "const data = pm.response.json();",
-                  "if (data.id) { pm.collectionVariables.set('cursoId', String(data.id)); }"
+                  "pm.collectionVariables.set('cursoSeguridadId', String(data.id));",
+                  "pm.test('Curso creado con id', function () { pm.expect(data.id).to.exist; });"
                 ]
               }
             }
@@ -268,22 +437,12 @@
       ]
     },
     {
-      "name": "01 - Contenidos, examenes y calificaciones",
-      "description": "Capturas nuevas faltantes para cerrar alcance del caso EFT y generar registros en Oracle.",
+      "name": "02 - Flujo academico y examen (5:00-6:05)",
+      "description": "Bloque Cristian: evidencias 29, 30, 31 y 32. Inscripcion, inicio de intento, finalizacion y trazabilidad.",
       "item": [
         {
-          "name": "01.1 Crear contenido de curso",
+          "name": "02.1 Evidencia 29 - Registrar inscripcion",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{instructorToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -292,205 +451,57 @@
                 "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Material introductorio Cloud Native\",\n  \"descripcion\": \"Contenido base para revisar arquitectura cloud native, API Gateway, seguridad JWT, RabbitMQ y S3.\",\n  \"urlContenido\": \"https://example.com/contenidos/cloud-native-introduccion\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{ec2Url}}/cursos/{{cursoId}}/contenidos",
-            "description": "Capturar 201 Created y luego Oracle CONTENIDOS_CURSO."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Contenido creado', function () { pm.response.to.have.status(201); });",
-                  "const data = pm.response.json();",
-                  "if (data.id) { pm.collectionVariables.set('contenidoId', String(data.id)); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.2 Listar contenidos de curso",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/cursos/{{cursoId}}/contenidos",
-            "description": "Capturar 200 OK con lista de contenidos."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Lista contenidos', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Respuesta es arreglo', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.3 Crear examen de curso",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{instructorToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Evaluacion Cloud Native\",\n  \"descripcion\": \"Examen de validacion de integraciones cloud native.\",\n  \"fechaDisponible\": \"2026-07-19T20:00:00\",\n  \"puntajeMaximo\": 100\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{ec2Url}}/cursos/{{cursoId}}/examenes",
-            "description": "Capturar 201 Created y luego Oracle EXAMENES."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Examen creado', function () { pm.response.to.have.status(201); });",
-                  "const data = pm.response.json();",
-                  "if (data.id) { pm.collectionVariables.set('examenId', String(data.id)); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.4 Listar examenes de curso",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/cursos/{{cursoId}}/examenes",
-            "description": "Capturar 200 OK con lista de examenes."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Lista examenes', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Respuesta es arreglo', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.5 Crear inscripcion de estudiante",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"estudianteNombre\": \"Maria Perez\",\n  \"estudianteEmail\": \"maria.perez@duocuc.cl\",\n  \"cursoIds\": [{{cursoId}}]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": "{{ec2Url}}/inscripciones",
-            "description": "Capturar 201 Created. La respuesta guarda numeroResumen para calificacion, resumen, RabbitMQ y S3."
+            "description": "Registra una inscripcion para el curso preparado y guarda numeroResumen.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{estudianteToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudianteNombre\": \"{{estudianteNombre}}\",\n  \"estudianteEmail\": \"{{estudianteEmail}}\",\n  \"cursoIds\": [{{cursoId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Inscripcion creada', function () { pm.response.to.have.status(201); });",
+                  "pm.test('201 Created inscripcion', function () { pm.response.to.have.status(201); });",
                   "const data = pm.response.json();",
-                  "const id = data.inscripcionId || data.numeroResumen || data.id;",
-                  "if (id) {",
-                  "  pm.collectionVariables.set('numeroResumen', String(id));",
-                  "  pm.collectionVariables.set('inscripcionId', String(id));",
-                  "}"
+                  "pm.collectionVariables.set('inscripcionId', String(data.inscripcionId));",
+                  "pm.collectionVariables.set('numeroResumen', String(data.inscripcionId));",
+                  "pm.test('Total calculado y estudiante correcto', function () { pm.expect(data.estudianteEmail).to.eql(pm.collectionVariables.get('estudianteEmail')); pm.expect(Number(data.totalPagar)).to.be.greaterThan(0); });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "01.6 Registrar calificacion",
+          "name": "02.2 Evidencia 30 - Iniciar intento de examen",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{instructorToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -499,35 +510,8 @@
                 "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"inscripcionId\": {{inscripcionId}},\n  \"examenId\": {{examenId}},\n  \"puntaje\": 92,\n  \"comentario\": \"Desempeno logrado en la evaluacion cloud native.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{ec2Url}}/calificaciones",
-            "description": "Capturar 201 Created y luego Oracle CALIFICACIONES."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Calificacion registrada', function () { pm.response.to.have.status(201); });",
-                  "const data = pm.response.json();",
-                  "if (data.id) { pm.collectionVariables.set('calificacionId', String(data.id)); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.7 Listar calificaciones por inscripcion",
-          "request": {
+            "url": "{{ec2Url}}/examenes/{{examenId}}/intentos",
+            "description": "POST intentos deja el examen en estado INICIADO.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -538,44 +522,6 @@
                 }
               ]
             },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/calificaciones?inscripcionId={{inscripcionId}}",
-            "description": "Capturar 200 OK con calificaciones de la inscripcion."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Lista calificaciones', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Respuesta es arreglo', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.8 ESTUDIANTE inicia intento de examen",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"inscripcionId\": {{inscripcionId}}\n}",
@@ -584,19 +530,27 @@
                   "language": "json"
                 }
               }
-            },
-            "url": "{{ec2Url}}/examenes/{{examenId}}/intentos",
-            "description": "Capturar 201 Created. Demuestra que el estudiante inicia un intento real de examen."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Intento iniciado', function () { pm.response.to.have.status(201); });",
+                  "pm.test('201 Created intento', function () { pm.response.to.have.status(201); });",
                   "const data = pm.response.json();",
-                  "if (data.id) { pm.collectionVariables.set('intentoId', String(data.id)); }",
+                  "pm.collectionVariables.set('intentoId', String(data.id));",
                   "pm.test('Estado INICIADO', function () { pm.expect(data.estado).to.eql('INICIADO'); });"
                 ]
               }
@@ -604,56 +558,18 @@
           ]
         },
         {
-          "name": "01.9 ESTUDIANTE finaliza examen y registra calificacion",
+          "name": "02.3 Evidencia 31 - Finalizar intento y generar calificacion",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"puntajeObtenido\": {{puntajeObtenido}},\n  \"respuestas\": [\n    { \"pregunta\": \"Arquitectura cloud native\", \"respuesta\": \"API Gateway, BFF, RabbitMQ y S3\" },\n    { \"pregunta\": \"Seguridad\", \"respuesta\": \"JWT emitido por Azure AD B2C\" }\n  ],\n  \"comentario\": \"Examen realizado por estudiante y calificacion registrada automaticamente.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": "{{ec2Url}}/intentos/{{intentoId}}/finalizar",
-            "description": "Capturar 200 OK. Demuestra envio de respuestas, cierre del intento y registro automatico de calificacion."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Intento finalizado', function () { pm.response.to.have.status(200); });",
-                  "const data = pm.response.json();",
-                  "pm.test('Estado FINALIZADO', function () { pm.expect(data.estado).to.eql('FINALIZADO'); });",
-                  "pm.test('Calificacion generada', function () { pm.expect(data.calificacionId).to.exist; });",
-                  "if (data.calificacionId) { pm.collectionVariables.set('calificacionId', String(data.calificacionId)); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "01.10 Listar intentos por inscripcion",
-          "request": {
+            "description": "Finaliza el intento con respuestas y puntaje. El backend genera calificacion automatica.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -664,191 +580,50 @@
                 }
               ]
             },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/inscripciones/{{inscripcionId}}/intentos",
-            "description": "Capturar 200 OK. Demuestra trazabilidad del intento realizado por el estudiante."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Lista intentos', function () { pm.response.to.have.status(200); });",
-                  "const data = pm.response.json();",
-                  "pm.test('Existe al menos un intento', function () { pm.expect(data.length).to.be.above(0); });"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "02 - API Gateway",
-      "description": "Capturas con URL de API Gateway para demostrar API Manager funcionando con JWT.",
-      "item": [
-        {
-          "name": "02.1 API Gateway sin token debe responder 401",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{apiGatewayUrl}}/cursos",
-            "description": "Capturar 401 usando URL publica del API Gateway."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('API Gateway 401 sin token', function () { pm.response.to.have.status(401); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "02.2 API Gateway con token debe responder 200",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{apiGatewayUrl}}/cursos",
-            "description": "Capturar 200 usando URL publica del API Gateway y Bearer Token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('API Gateway 200 con token', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "02.3 API Gateway contenidos con token debe responder 200",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{apiGatewayUrl}}/cursos/{{cursoId}}/contenidos",
-            "description": "Capturar ruta nueva funcionando por API Gateway."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('API Gateway contenidos 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "02.4 API Gateway calificaciones con token debe responder 200",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{apiGatewayUrl}}/calificaciones?inscripcionId={{inscripcionId}}",
-            "description": "Capturar ruta nueva de calificaciones funcionando por API Gateway."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('API Gateway calificaciones 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "02.5 API Gateway iniciar intento con token debe responder 201",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"inscripcionId\": {{inscripcionId}}\n}",
+              "raw": "{\n  \"puntajeObtenido\": {{puntajeObtenido}},\n  \"respuestas\": [\n    { \"pregunta\": \"Seguridad\", \"respuesta\": \"JWT emitido por Azure AD B2C\" },\n    { \"pregunta\": \"Mensajeria\", \"respuesta\": \"RabbitMQ desacopla productor y consumidor\" }\n  ],\n  \"comentario\": \"Examen realizado durante la demo Kaltura.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            },
-            "url": "{{apiGatewayUrl}}/examenes/{{examenId}}/intentos",
-            "description": "Capturar ruta de intento de examen publicada en API Gateway."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('API Gateway intento 201', function () { pm.response.to.have.status(201); });"
+                  "pm.test('200 OK intento finalizado', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('calificacionId', String(data.calificacionId));",
+                  "pm.test('Estado FINALIZADO y calificacion generada', function () { pm.expect(data.estado).to.eql('FINALIZADO'); pm.expect(data.calificacionId).to.exist; });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "02.6 API Gateway listar intentos con token debe responder 200",
+          "name": "02.4 Evidencia 32 - Consultar intentos de la inscripcion",
           "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/inscripciones/{{inscripcionId}}/intentos",
+            "description": "Muestra la trazabilidad del intento realizado: fechas, puntaje, respuestas y estado.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -858,19 +633,27 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{apiGatewayUrl}}/inscripciones/{{inscripcionId}}/intentos",
-            "description": "Capturar consulta de intentos publicada por API Gateway."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('API Gateway intentos 200', function () { pm.response.to.have.status(200); });"
+                  "pm.test('200 OK lista intentos', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Incluye el intento finalizado', function () { const intento = data.find(i => String(i.id) === pm.collectionVariables.get('intentoId')); pm.expect(intento).to.exist; pm.expect(intento.estado).to.eql('FINALIZADO'); });"
                 ]
               }
             }
@@ -879,42 +662,18 @@
       ]
     },
     {
-      "name": "03 - RabbitMQ",
-      "description": "Capturas para productor, cola Management y consumidor.",
+      "name": "03 - RabbitMQ productor y consumidor (6:05-7:05)",
+      "description": "Bloque Felipe: evidencias 40, 41 y 43. Publicacion, cola visible y consumo.",
       "item": [
         {
-          "name": "03.1 Generar resumen local",
+          "name": "03.1 Evidencia 40 - Producir resumen en RabbitMQ",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{estudianteToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/inscripciones/{{numeroResumen}}/resumen",
-            "description": "Capturar resumen local disponible antes de publicar en RabbitMQ."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Resumen disponible', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "03.2 Producir mensaje RabbitMQ",
-          "request": {
+            "method": "POST",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/inscripciones/{{numeroResumen}}/resumenes-mq/producir",
+            "description": "El productor responde cola, exchange y routing key.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -924,33 +683,41 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": "{{ec2Url}}/inscripciones/{{numeroResumen}}/resumenes-mq/producir",
-            "description": "Capturar 200 con cola, exchange y routing key."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Mensaje publicado', function () { pm.response.to.have.status(200); });",
+                  "pm.test('200 OK productor', function () { pm.response.to.have.status(200); });",
                   "const data = pm.response.json();",
-                  "pm.test('Datos RabbitMQ presentes', function () {",
-                  "  pm.expect(data.cola).to.exist;",
-                  "  pm.expect(data.exchange).to.exist;",
-                  "  pm.expect(data.routingKey).to.exist;",
-                  "});"
+                  "pm.test('Metadata RabbitMQ correcta', function () { pm.expect(data.cola).to.eql(pm.collectionVariables.get('queueName')); pm.expect(data.exchange).to.eql(pm.collectionVariables.get('exchangeName')); pm.expect(data.routingKey).to.eql(pm.collectionVariables.get('routingKey')); });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "03.3 RabbitMQ Management - detalle cola",
+          "name": "03.2 Evidencia 41 - Ver cola en RabbitMQ Management",
           "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "{{rabbitUrl}}/api/queues/%2F/{{queueName}}",
+            "description": "Muestra resumen.inscripcion.queue con mensajes y contadores.",
             "auth": {
               "type": "basic",
               "basic": [
@@ -965,11 +732,7 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{rabbitUrl}}/api/queues/%2F/{{queueName}}",
-            "description": "Capturar cola resumen.inscripcion.queue con messages listo para consumo."
+            }
           },
           "event": [
             {
@@ -977,17 +740,23 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('RabbitMQ cola visible', function () { pm.response.to.have.status(200); });",
+                  "pm.test('200 OK Management', function () { pm.response.to.have.status(200); });",
                   "const data = pm.response.json();",
-                  "pm.test('Nombre de cola correcto', function () { pm.expect(data.name).to.eql(pm.collectionVariables.get('queueName')); });"
+                  "pm.test('Cola correcta y mensajes visibles', function () { pm.expect(data.name).to.eql(pm.collectionVariables.get('queueName')); pm.expect(data.messages).to.exist; });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "03.4 Consumir mensaje RabbitMQ",
+          "name": "03.3 Evidencia 43 - Consumir resumen RabbitMQ",
           "request": {
+            "method": "POST",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/inscripciones/resumenes-mq/consumir",
+            "description": "El consumidor procesa el mensaje para dejarlo persistido en Oracle.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -997,19 +766,27 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": "{{ec2Url}}/inscripciones/resumenes-mq/consumir",
-            "description": "Capturar 200 y luego Oracle RESUMENES_INSCRIPCION_MQ."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Mensaje consumido', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                  "pm.test('200 OK consumidor', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Resumen consumido corresponde a la inscripcion', function () { pm.expect(data.numeroResumen).to.eql(Number(pm.collectionVariables.get('numeroResumen'))); pm.expect(data.estudianteEmail).to.eql(pm.collectionVariables.get('estudianteEmail')); });"
                 ]
               }
             }
@@ -1018,12 +795,18 @@
       ]
     },
     {
-      "name": "04 - S3 minimo",
-      "description": "Capturas minimas para demostrar almacenamiento cloud.",
+      "name": "04 - AWS S3 resumen (7:05-8:00)",
+      "description": "Bloque Cristian: evidencias 46, 47 y 48. Subida al bucket y descarga del archivo.",
       "item": [
         {
-          "name": "04.1 Subir resumen a S3",
+          "name": "04.1 Evidencia 46 - Subir resumen a S3",
           "request": {
+            "method": "POST",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/s3/uploadResumen?numeroResumen={{numeroResumen}}",
+            "description": "El backend sube resumen.txt al bucket usando la clave {numeroResumen}/resumen.txt.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1033,27 +816,41 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": "{{ec2Url}}/s3/uploadResumen?numeroResumen={{numeroResumen}}",
-            "description": "Capturar objeto creado en S3."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('instructorToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta instructorToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Resumen subido a S3', function () { pm.response.to.have.status(200); });"
+                  "pm.test('200 OK subida S3', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Bucket y clave correctos', function () { pm.expect(data.bucket).to.exist; pm.expect(data.clave).to.eql(pm.collectionVariables.get('numeroResumen') + '/resumen.txt'); });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "04.2 Descargar resumen desde S3",
+          "name": "04.2 Evidencia 47 - Descargar resumen desde S3",
           "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "{{ec2Url}}/s3/downloadResumen?numeroResumen={{numeroResumen}}",
+            "description": "Descarga el archivo para mostrar que contiene datos de la inscripcion.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1063,41 +860,87 @@
                   "type": "string"
                 }
               ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{ec2Url}}/s3/downloadResumen?numeroResumen={{numeroResumen}}",
-            "description": "Capturar descarga desde S3."
+            }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('estudianteToken');",
+                  "if (!token || !token.trim()) { throw new Error('Falta estudianteToken. Pega un JWT vigente sin la palabra Bearer.'); }"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Resumen descargado desde S3', function () { pm.response.to.have.status(200); });"
+                  "pm.test('200 OK descarga S3', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contenido incluye estudiante', function () { pm.expect(pm.response.text()).to.include(pm.collectionVariables.get('estudianteNombre')); });"
                 ]
               }
             }
+          ]
+        },
+        {
+          "name": "04.3 Evidencia 48 - Checklist consola S3",
+          "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "https://example.com/no-ejecutar",
+            "description": "No ejecutar. Abrir la consola AWS S3 y mostrar el objeto {numeroResumen}/resumen.txt visible en el bucket del proyecto.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+
           ]
         }
       ]
     },
     {
-      "name": "05 - Capturas Oracle requeridas",
-      "description": "Esta carpeta no ejecuta SQL. Sirve como checklist de capturas Oracle despues de correr las pruebas.",
+      "name": "05 - Checklist fuera de Postman",
+      "description": "Estos puntos se muestran en consolas externas segun el guion; no son requests de API.",
       "item": [
         {
-          "name": "05.1 Checklist Oracle",
+          "name": "05.1 Oracle Cloud - Evidencias 44 y 45",
           "request": {
+            "method": "GET",
+            "header": [
+
+            ],
+            "url": "https://example.com/no-ejecutar",
+            "description": "No ejecutar. Mostrar SQL con cursos, inscripciones, intentos, calificaciones y resumen RabbitMQ persistido.",
             "auth": {
               "type": "noauth"
-            },
+            }
+          },
+          "event": [
+
+          ]
+        },
+        {
+          "name": "05.2 CI/CD y EC2 - Evidencias 12, 14, 15 y 56",
+          "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+
+            ],
             "url": "https://example.com/no-ejecutar",
-            "description": "No ejecutar. Capturar en Oracle Cloud: SELECT * FROM CONTENIDOS_CURSO ORDER BY ID DESC; SELECT * FROM EXAMENES ORDER BY ID DESC; SELECT * FROM CALIFICACIONES ORDER BY ID DESC; SELECT * FROM RESUMENES_INSCRIPCION_MQ ORDER BY ID DESC;"
-          }
+            "description": "No ejecutar. Mostrar GitHub Actions verde, docker ps en EC2 y secrets configurados fuera del codigo.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+
+          ]
         }
       ]
     }
