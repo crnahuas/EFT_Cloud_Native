@@ -2,7 +2,7 @@
 
 Este repositorio contiene una solucion cloud native para una plataforma educativa de cursos virtuales preparada para la Evaluacion Final Transversal.
 
-La aplicacion incluye backend Spring Boot, frontend HTML separado, persistencia en Oracle Cloud, almacenamiento AWS S3, RabbitMQ en Docker, API Gateway, Azure AD B2C, imagenes Docker y despliegue automatizado hacia AWS EC2 mediante GitHub Actions.
+La aplicacion incluye backend Spring Boot, frontend HTML separado, persistencia en Oracle Cloud, almacenamiento AWS S3, RabbitMQ en Docker, API Gateway, Azure AD B2C, soporte configurable de roles, imagenes Docker y despliegue automatizado hacia AWS EC2 mediante GitHub Actions.
 
 ## Endpoints requeridos
 
@@ -10,7 +10,13 @@ La aplicacion incluye backend Spring Boot, frontend HTML separado, persistencia 
 | --- | --- | --- |
 | GET | `/cursos` | Consulta cursos disponibles con nombre, instructor, duracion y costo. |
 | POST | `/cursos` | Agrega un nuevo curso y lo persiste en Oracle Cloud. |
+| GET | `/cursos/{cursoId}/contenidos` | Lista contenidos publicados para un curso. |
+| POST | `/cursos/{cursoId}/contenidos` | Registra contenido o material de estudio para un curso. |
+| GET | `/cursos/{cursoId}/examenes` | Lista examenes disponibles para un curso. |
+| POST | `/cursos/{cursoId}/examenes` | Registra un examen asociado a un curso. |
 | POST | `/inscripciones` | Inscribe un estudiante en uno o mas cursos, calcula el total y persiste la inscripcion en Oracle Cloud. |
+| GET | `/calificaciones?inscripcionId=1` | Lista calificaciones de una inscripcion. |
+| POST | `/calificaciones` | Registra una calificacion de examen para un estudiante inscrito. |
 | GET | `/inscripciones/{numeroResumen}/resumen` | Genera y descarga el archivo fisico `resumen.txt` de una inscripcion. |
 | POST | `/inscripciones/{numeroResumen}/resumenes-mq/producir` | Publica explicitamente un resumen en RabbitMQ. |
 | POST | `/inscripciones/resumenes-mq/consumir` | Consume un resumen desde RabbitMQ y lo guarda en Oracle Cloud. |
@@ -19,7 +25,10 @@ La aplicacion incluye backend Spring Boot, frontend HTML separado, persistencia 
 | GET | `/s3/downloadResumen?numeroResumen=1` | Descarga el resumen almacenado en AWS S3. |
 | DELETE | `/s3/deleteResumen?numeroResumen=1` | Elimina el resumen almacenado en AWS S3. |
 
-El flujo de uso esperado es crear uno o mas cursos, revisar la lista disponible y luego generar una inscripcion utilizando los IDs de los cursos existentes.
+El flujo de uso esperado es crear uno o mas cursos, publicar contenidos y
+examenes asociados, revisar la lista disponible, generar una inscripcion usando
+los IDs de cursos existentes, registrar calificaciones y luego ejecutar el flujo
+de resumen, RabbitMQ y S3.
 
 ## Tecnologias
 
@@ -41,6 +50,7 @@ El flujo de uso esperado es crear uno o mas cursos, revisar la lista disponible 
 - Azure AD B2C como IDaaS
 - Oracle Cloud Database
 - Postman
+- Roles opcionales `ESTUDIANTE` e `INSTRUCTOR` mediante claims JWT
 
 La eleccion de estas tecnologias mantiene el proyecto enfocado: Spring Boot y Maven para el microservicio, Oracle Cloud para persistencia, Docker/Docker Hub para empaquetado y publicacion, GitHub Actions para CI/CD, AWS EC2 para ejecutar el contenedor publicado, AWS API Gateway para exponer los endpoints y Azure AD B2C para emitir los JWT.
 

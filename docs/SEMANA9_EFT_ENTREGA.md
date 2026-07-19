@@ -8,11 +8,14 @@ inscripciones, seguridad JWT, Oracle Cloud, S3, RabbitMQ, Docker y despliegue.
 
 ## Componentes de la entrega
 
-- Backend Spring Boot con endpoints JSON para cursos, inscripciones, resumen,
-  RabbitMQ y S3.
+- Backend Spring Boot con endpoints JSON para cursos, contenidos, examenes,
+  calificaciones, inscripciones, resumen, RabbitMQ y S3.
 - Frontend separado en `frontend/index.html`, publicado como
   contenedor independiente para demostrar consumo de endpoints con token JWT.
 - Seguridad con Azure AD B2C mediante JWT validado por Spring Security.
+- Soporte configurable para roles `ESTUDIANTE` e `INSTRUCTOR` con
+  `APP_SECURITY_ROLES_ENABLED=true`, siempre que Azure AD B2C emita el claim de
+  rol en el JWT.
 - API Gateway para exponer los endpoints del backend en AWS.
 - RabbitMQ en Docker para cola, productor y consumidor.
 - AWS S3 para almacenamiento cloud de resumenes.
@@ -28,11 +31,15 @@ inscripciones, seguridad JWT, Oracle Cloud, S3, RabbitMQ, Docker y despliegue.
 3. Configurar `accessToken` con el JWT vigente.
 4. Configurar `baseUrl` con EC2 o API Gateway.
 5. Crear un curso.
-6. Crear una inscripcion.
-7. Generar el resumen.
-8. Publicar el resumen en RabbitMQ.
-9. Consumir el mensaje y guardar el resultado en Oracle Cloud.
-10. Subir, descargar o eliminar el resumen en S3.
+6. Crear contenido y examen para el curso.
+7. Crear una inscripcion.
+8. Registrar una calificacion para el examen.
+9. Generar el resumen.
+10. Publicar el resumen en RabbitMQ.
+11. Consumir el mensaje y guardar el resultado en Oracle Cloud.
+12. Subir, descargar o eliminar el resumen en S3.
+13. Si se habilitan roles, ejecutar una prueba `403 Forbidden` con un usuario
+    autenticado sin permiso de instructor.
 
 Como cliente visual opcional tambien se puede abrir `frontend/index.html` en el
 navegador o usar el contenedor `formativa-frontend` en el puerto `3000`.
@@ -43,7 +50,13 @@ navegador o usar el contenedor `formativa-frontend` en el puerto `3000`.
 | --- | --- | --- |
 | GET | `/cursos` | JSON con cursos disponibles |
 | POST | `/cursos` | Curso persistido en Oracle |
+| GET | `/cursos/{cursoId}/contenidos` | Contenidos del curso |
+| POST | `/cursos/{cursoId}/contenidos` | Contenido persistido en Oracle |
+| GET | `/cursos/{cursoId}/examenes` | Examenes del curso |
+| POST | `/cursos/{cursoId}/examenes` | Examen persistido en Oracle |
 | POST | `/inscripciones` | Inscripcion persistida en Oracle |
+| GET | `/calificaciones` | Calificaciones por inscripcion |
+| POST | `/calificaciones` | Calificacion persistida en Oracle |
 | GET | `/inscripciones/{numeroResumen}/resumen` | Archivo `resumen.txt` |
 | POST | `/inscripciones/{numeroResumen}/resumenes-mq/producir` | Mensaje enviado a RabbitMQ |
 | POST | `/inscripciones/resumenes-mq/consumir` | Mensaje consumido y guardado en Oracle |
@@ -77,12 +90,24 @@ La carpeta `rabbitmq/` contiene `definitions.json` y `rabbitmq.conf`, usados por
 Docker Compose para crear automaticamente la cola, el exchange y el binding al
 iniciar RabbitMQ.
 
+Configuracion de roles opcional para evidencia IDaaS:
+
+| Variable | Valor |
+| --- | --- |
+| `APP_SECURITY_ROLES_ENABLED` | `true` para exigir roles, `false` para validar solo autenticacion |
+| Claim aceptado | `roles`, `role`, `extension_Rol` o `extension_role` |
+| Rol estudiante | `ESTUDIANTE` |
+| Rol instructor | `INSTRUCTOR` |
+
 ## Evidencia para la pauta
 
 - Spring Boot: mostrar codigo y respuesta JSON de `/cursos`.
-- IDaaS: mostrar Azure AD B2C y llamada con JWT.
-- RabbitMQ: mostrar cola, mensaje pendiente, consumo y registro en Oracle.
-- API Manager: mostrar rutas en API Gateway y prueba por URL Gateway.
+- IDaaS: mostrar Azure AD B2C, llamada con JWT, 401 sin token y, si se activa
+  roles, 403 por permiso insuficiente.
+- RabbitMQ: mostrar cola, exchange, binding, mensaje pendiente, consumo y
+  registro en Oracle.
+- API Manager: mostrar todas las rutas en API Gateway y prueba 200/201 por URL
+  Gateway.
 - S3: mostrar bucket y objeto `numeroResumen/resumen.txt`.
 - Frontend: mostrar `http://IP_EC2:3000` consumiendo el backend con JWT.
 - CI/CD: mostrar GitHub Actions desplegando backend, frontend y RabbitMQ en EC2.

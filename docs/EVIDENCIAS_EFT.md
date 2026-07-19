@@ -20,17 +20,18 @@ nombrar las imagenes con el numero indicado para que el orden sea claro.
 | 06 | Azure AD B2C | Tenant, app o user flow usado para emitir JWT. |
 | 07 | App registrada | Client ID o configuracion de la aplicacion, sin mostrar secretos. |
 | 08 | Token JWT | Claims principales, especialmente `iss`, sin exponer datos sensibles si no es necesario. |
-| 09 | Roles o permisos | Claims, grupos o configuracion de permisos si estan definidos en Azure AD B2C. |
+| 09 | Roles o permisos | Claim `roles`, `role`, `extension_Rol` o `extension_role` con `ESTUDIANTE` e `INSTRUCTOR`, o configuracion equivalente en Azure AD B2C. |
 | 10 | GitHub Secret IDaaS | Secret `AZURE_B2C_ISSUER_URI` creado, sin mostrar valor. |
 | 11 | Prueba sin token | `GET /cursos` respondiendo `401 Unauthorized`. |
 | 12 | Prueba con token | `GET /cursos` respondiendo `200 OK`. |
+| 12B | Prueba por rol | Con `APP_SECURITY_ROLES_ENABLED=true`, usuario sin rol de instructor recibe `403 Forbidden` al intentar una operacion de instructor. |
 
 ## 3. API Gateway
 
 | N | Evidencia | Que debe mostrar |
 | --- | --- | --- |
 | 13 | API Gateway | API creada en AWS. |
-| 14 | Rutas registradas | Rutas de cursos, inscripciones, RabbitMQ y S3. |
+| 14 | Rutas registradas | Rutas de cursos, contenidos, examenes, calificaciones, inscripciones, RabbitMQ y S3. |
 | 15 | Integracion HTTP | Integracion hacia EC2/backend. |
 | 16 | Prueba por API Gateway | Request con JWT respondiendo correctamente. |
 
@@ -55,12 +56,15 @@ Usar `docs/postman_eft_semana9_collection.json`.
 | 23 | Crear curso | `POST /cursos` | `201 Created` con `id`. |
 | 24 | Listar cursos | `GET /cursos` | `200 OK` con lista JSON. |
 | 25 | Crear inscripcion | `POST /inscripciones` | `201 Created` con `numeroResumen` o `id`. |
-| 26 | Generar resumen | `GET /inscripciones/{numeroResumen}/resumen` | `200 OK` y archivo de texto. |
-| 27 | Producir RabbitMQ | `POST /inscripciones/{numeroResumen}/resumenes-mq/producir` | `200 OK` con cola/exchange/routing key. |
-| 28 | Consumir RabbitMQ | `POST /inscripciones/resumenes-mq/consumir` | `200 OK` con registro procesado. |
-| 29 | Subir S3 | `POST /s3/uploadResumen` | `200 OK` con clave `numeroResumen/resumen.txt`. |
-| 30 | Actualizar S3 | `PUT /s3/updateResumen` | `200 OK`. |
-| 31 | Descargar S3 | `GET /s3/downloadResumen` | `200 OK` con contenido del resumen. |
+| 26 | Crear contenido | `POST /cursos/{cursoId}/contenidos` | `201 Created` con contenido asociado al curso. |
+| 27 | Crear examen | `POST /cursos/{cursoId}/examenes` | `201 Created` con examen asociado al curso. |
+| 28 | Registrar calificacion | `POST /calificaciones` | `201 Created` con puntaje de la inscripcion. |
+| 29 | Generar resumen | `GET /inscripciones/{numeroResumen}/resumen` | `200 OK` y archivo de texto. |
+| 30 | Producir RabbitMQ | `POST /inscripciones/{numeroResumen}/resumenes-mq/producir` | `200 OK` con cola/exchange/routing key. |
+| 31 | Consumir RabbitMQ | `POST /inscripciones/resumenes-mq/consumir` | `200 OK` con registro procesado. |
+| 31B | Subir S3 | `POST /s3/uploadResumen` | `200 OK` con clave `numeroResumen/resumen.txt`. |
+| 31C | Actualizar S3 | `PUT /s3/updateResumen` | `200 OK`. |
+| 31D | Descargar S3 | `GET /s3/downloadResumen` | `200 OK` con contenido del resumen. |
 
 La eliminacion de S3 es opcional para limpieza. Si se necesita capturar el
 objeto en el bucket, tomar la captura antes de ejecutar `DELETE /s3/deleteResumen`.
@@ -94,11 +98,15 @@ RABBITMQ_RESUMEN_ROUTING_KEY=resumen.inscripcion.key
 | 38 | Tabla cursos | Registros creados en `CURSOS`. |
 | 39 | Tabla inscripciones | Registro creado en `INSCRIPCIONES`. |
 | 40 | Tabla RabbitMQ | Registro creado en `RESUMENES_INSCRIPCION_MQ`. |
+| 40B | Tablas de alcance ampliado | Registros en `CONTENIDOS_CURSO`, `EXAMENES` y `CALIFICACIONES`. |
 
 Consulta sugerida:
 
 ```sql
 SELECT * FROM RESUMENES_INSCRIPCION_MQ ORDER BY ID DESC;
+SELECT * FROM CONTENIDOS_CURSO ORDER BY ID DESC;
+SELECT * FROM EXAMENES ORDER BY ID DESC;
+SELECT * FROM CALIFICACIONES ORDER BY ID DESC;
 ```
 
 ## 8. AWS S3

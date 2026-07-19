@@ -75,6 +75,14 @@
     {
       "key": "routingKey",
       "value": "resumen.inscripcion.key"
+    },
+    {
+      "key": "examenId",
+      "value": "1"
+    },
+    {
+      "key": "calificacionId",
+      "value": "1"
     }
   ],
   "event": [
@@ -343,6 +351,257 @@
                   "pm.test('Inscripcion creada con id', function () { pm.expect(id).to.exist; });",
                   "pm.test('Total calculado', function () { pm.expect(Number(data.totalPagar || data.total)).to.be.greaterThan(0); });",
                   "pm.collectionVariables.set('numeroResumen', String(id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3A Crear contenido de curso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/cursos/{{cursoId}}/contenidos",
+            "description": "Evidencia: instructor publica material de estudio asociado al curso.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Material introductorio Cloud Native\",\n  \"descripcion\": \"Contenido base para acceder al curso y revisar conceptos iniciales.\",\n  \"urlContenido\": \"https://example.com/contenidos/cloud-native-introduccion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Contenido creado con cursoId', function () { pm.expect(String(data.cursoId)).to.eql(pm.collectionVariables.get('cursoId')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3B Listar contenidos de curso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cursos/{{cursoId}}/contenidos",
+            "description": "Evidencia: estudiante accede a contenidos publicados del curso."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Respuesta es lista', function () { pm.expect(data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3C Crear examen de curso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/cursos/{{cursoId}}/examenes",
+            "description": "Evidencia: instructor registra examen asociado al curso.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Evaluacion Cloud Native\",\n  \"descripcion\": \"Examen de validacion de conceptos cloud native e integraciones.\",\n  \"fechaDisponible\": \"2026-07-18T20:00:00\",\n  \"puntajeMaximo\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Examen creado con id', function () { pm.expect(data.id).to.exist; });",
+                  "pm.collectionVariables.set('examenId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3D Listar examenes de curso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cursos/{{cursoId}}/examenes",
+            "description": "Evidencia: estudiante consulta examenes disponibles para el curso."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Respuesta es lista', function () { pm.expect(data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3E Registrar calificacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones",
+            "description": "Evidencia: instructor registra calificacion de examen para una inscripcion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inscripcionId\": {{numeroResumen}},\n  \"examenId\": {{examenId}},\n  \"puntaje\": 92,\n  \"comentario\": \"Desempeno logrado en la evaluacion cloud native.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Calificacion creada con id', function () { pm.expect(data.id).to.exist; });",
+                  "pm.collectionVariables.set('calificacionId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3F Listar calificaciones por inscripcion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/calificaciones?inscripcionId={{numeroResumen}}",
+            "description": "Evidencia: consulta de calificaciones asociadas a la inscripcion del estudiante."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('accessToken');",
+                  "if (!token || token.includes('PEGAR_')) {",
+                  "  throw new Error('Falta accessToken. Pega un JWT vigente de Azure AD B2C en variables de la coleccion.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Respuesta es lista', function () { pm.expect(data).to.be.an('array'); });"
                 ]
               }
             }

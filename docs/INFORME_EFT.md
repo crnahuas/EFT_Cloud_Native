@@ -21,7 +21,7 @@ La arquitectura de la solucion se organiza en los siguientes componentes:
 | Componente | Funcion |
 | --- | --- |
 | Frontend | Cliente web para ejecutar el flujo funcional con JWT. |
-| Backend Spring Boot | Expone APIs REST para cursos, inscripciones, resumenes, RabbitMQ y S3. |
+| Backend Spring Boot | Expone APIs REST para cursos, contenidos, examenes, calificaciones, inscripciones, resumenes, RabbitMQ y S3. |
 | Azure AD B2C | Servicio IDaaS encargado de emitir los tokens JWT. |
 | AWS API Gateway | API Manager para publicar y administrar los endpoints. |
 | RabbitMQ | Servicio de colas para procesar resumenes de inscripcion. |
@@ -34,8 +34,8 @@ La arquitectura de la solucion se organiza en los siguientes componentes:
 
 | Criterio de evaluacion | Cumplimiento en el proyecto | Evidencia asociada |
 | --- | --- | --- |
-| Microservicios backend en Spring Boot | Backend Spring Boot con APIs REST para cursos, inscripciones, resumenes, RabbitMQ y S3. | Codigo fuente, Postman, respuestas JSON. |
-| IDaaS para autenticacion y autorizacion | Azure AD B2C emite JWT y Spring Security valida el token en todos los endpoints. | Token JWT, `401` sin token, `200` con token, secret `AZURE_B2C_ISSUER_URI`. |
+| Microservicios backend en Spring Boot | Backend Spring Boot con APIs REST para cursos, contenidos, examenes, calificaciones, inscripciones, resumenes, RabbitMQ y S3. El backend opera como BFF/orquestador y se despliega separado del frontend y RabbitMQ. | Codigo fuente, Postman, respuestas JSON. |
+| IDaaS para autenticacion y autorizacion | Azure AD B2C emite JWT y Spring Security valida el token en todos los endpoints. El backend tambien soporta roles `ESTUDIANTE` e `INSTRUCTOR` mediante claims JWT si se activa `APP_SECURITY_ROLES_ENABLED=true`. | Token JWT, `401` sin token, `403` por rol insuficiente, `200` con token, secret `AZURE_B2C_ISSUER_URI`. |
 | RabbitMQ en Docker | RabbitMQ se ejecuta como contenedor `formativa-rabbitmq` y la app usa productor y consumidor. | Consola RabbitMQ, cola, exchange, productor y consumidor. |
 | API Manager | AWS API Gateway publica las rutas del backend hacia EC2. | Captura de API Gateway con rutas e integracion HTTP. |
 | Almacenamiento cloud | AWS S3 almacena los archivos `numeroResumen/resumen.txt`. | Respuesta Postman y objeto visible en bucket S3. |
@@ -49,6 +49,9 @@ El caso solicitado habla de una plataforma de cursos en linea. En esta entrega
 el alcance implementado se concentra en el flujo backend evaluable:
 
 - Administracion basica de cursos.
+- Publicacion y consulta de contenidos de curso.
+- Registro y consulta de examenes.
+- Registro y consulta de calificaciones.
 - Inscripcion de estudiantes en cursos.
 - Generacion de resumen de inscripcion.
 - Publicacion del resumen en RabbitMQ.
@@ -60,9 +63,14 @@ El backend Spring Boot cumple el rol de BFF para la demostracion, ya que expone
 los endpoints consumidos por el frontend y orquesta las operaciones hacia
 RabbitMQ, Oracle y S3.
 
-Para IDaaS, el proyecto valida autenticacion con JWT. Si la evaluacion exige
-roles o permisos diferenciados, se debe complementar la evidencia de Azure AD
-B2C mostrando los claims o grupos configurados para el usuario de prueba.
+Para IDaaS, el proyecto valida autenticacion con JWT. Adicionalmente, el backend
+incluye soporte configurable para roles. Si se define
+`APP_SECURITY_ROLES_ENABLED=true`, Spring Security exige roles segun el tipo de
+operacion: `INSTRUCTOR` para administrar cursos, contenidos, examenes,
+calificaciones, RabbitMQ y escrituras S3; `ESTUDIANTE` o `INSTRUCTOR` para
+consultas, inscripciones, resumenes y descargas. Para evidenciar este punto se
+debe emitir el claim `roles`, `role`, `extension_Rol` o `extension_role` desde
+Azure AD B2C con los valores `ESTUDIANTE` e `INSTRUCTOR`.
 
 ## 5. Microservicio backend
 
@@ -75,7 +83,13 @@ Endpoints principales:
 | --- | --- | --- |
 | GET | `/cursos` | Lista los cursos disponibles. |
 | POST | `/cursos` | Crea un curso y lo persiste en Oracle Cloud. |
+| GET | `/cursos/{cursoId}/contenidos` | Lista contenidos disponibles para un curso. |
+| POST | `/cursos/{cursoId}/contenidos` | Registra contenido o material de estudio para un curso. |
+| GET | `/cursos/{cursoId}/examenes` | Lista examenes disponibles para un curso. |
+| POST | `/cursos/{cursoId}/examenes` | Registra un examen asociado a un curso. |
 | POST | `/inscripciones` | Registra una inscripcion de estudiante. |
+| GET | `/calificaciones?inscripcionId=1` | Lista calificaciones de una inscripcion. |
+| POST | `/calificaciones` | Registra una calificacion de examen. |
 | GET | `/inscripciones/{numeroResumen}/resumen` | Genera y descarga el resumen de inscripcion. |
 | POST | `/inscripciones/{numeroResumen}/resumenes-mq/producir` | Publica un resumen en RabbitMQ. |
 | POST | `/inscripciones/resumenes-mq/consumir` | Consume un mensaje desde RabbitMQ y lo guarda en Oracle. |
@@ -91,16 +105,43 @@ Server. Todos los endpoints requieren un token JWT valido emitido por Azure AD
 B2C. El backend valida el issuer configurado mediante la variable
 `AZURE_B2C_ISSUER_URI`.
 
-Para demostrar la seguridad se consideran dos pruebas:
+Configuracion aplicada:
+
+1. Crear o utilizar el tenant Azure AD B2C.
+2. Registrar la aplicacion cliente usada para obtener el token.
+3. Configurar el flujo de usuario `B2C_1_DuocDemoAzure_registro_login`.
+4. Obtener el issuer del documento OpenID Connect del flujo.
+5. Guardar el valor en el secret `AZURE_B2C_ISSUER_URI`.
+6. Configurar Spring Boot como OAuth2 Resource Server.
+7. Enviar el token en Postman o frontend usando `Authorization: Bearer`.
+8. Para roles, agregar un claim de aplicacion o atributo personalizado con
+   `ESTUDIANTE` o `INSTRUCTOR` y activar `APP_SECURITY_ROLES_ENABLED=true`.
+
+Para demostrar la seguridad se consideran tres pruebas:
 
 - Solicitud sin token: el backend responde `401 Unauthorized`.
 - Solicitud con JWT valido: el backend responde correctamente, por ejemplo
   `200 OK` en `GET /cursos`.
+- Solicitud autenticada con rol insuficiente: el backend responde
+  `403 Forbidden` cuando `APP_SECURITY_ROLES_ENABLED=true`.
 
 ## 7. API Manager
 
 Los endpoints del backend se publican mediante AWS API Gateway. API Gateway
 funciona como punto de entrada administrado hacia el backend desplegado en EC2.
+
+Configuracion aplicada:
+
+1. Crear una API HTTP en AWS API Gateway.
+2. Crear integraciones HTTP apuntando al backend en EC2, por ejemplo
+   `http://IP_PUBLICA_EC2:8080/cursos`.
+3. Registrar las rutas de cursos, contenidos, examenes, calificaciones,
+   inscripciones, RabbitMQ y S3.
+4. Asociar cada ruta al metodo HTTP correspondiente.
+5. Configurar el autorizador JWT con el issuer de Azure AD B2C.
+6. Asociar el autorizador a las rutas protegidas.
+7. Probar una solicitud sin token y confirmar `401 Unauthorized`.
+8. Probar una solicitud con Bearer Token y confirmar respuesta `200` o `201`.
 
 Las pruebas funcionales pueden ejecutarse contra la URL directa de EC2 o contra
 la URL de API Gateway. Para la evidencia final se recomienda mostrar ambas:
@@ -142,6 +183,18 @@ Para evitar que la configuracion dependa solamente del arranque del backend,
 RabbitMQ carga el archivo `rabbitmq/definitions.json`, donde se declaran la
 cola, el exchange y el binding con la routing key requerida.
 
+Configuracion aplicada:
+
+1. Levantar RabbitMQ con la imagen `rabbitmq:3-management`.
+2. Exponer el puerto `15672` para la consola y usar `5672` dentro de la red
+   Docker para AMQP.
+3. Cargar `rabbitmq/rabbitmq.conf` para habilitar las definiciones iniciales.
+4. Cargar `rabbitmq/definitions.json` con la cola, exchange y binding.
+5. Configurar el backend con `RABBITMQ_HOST`, usuario, password, cola, exchange
+   y routing key.
+6. Ejecutar el endpoint productor y verificar el mensaje pendiente.
+7. Ejecutar el endpoint consumidor y verificar el registro persistido en Oracle.
+
 El flujo demostrado es:
 
 1. Crear curso.
@@ -178,6 +231,9 @@ Tablas principales:
 | `INSCRIPCIONES` | Inscripciones realizadas por estudiantes. |
 | `INSCRIPCION_CURSOS` | Relacion entre inscripciones y cursos. |
 | `RESUMENES_INSCRIPCION_MQ` | Mensajes consumidos desde RabbitMQ. |
+| `CONTENIDOS_CURSO` | Contenidos y materiales asociados a cursos. |
+| `EXAMENES` | Examenes definidos para cada curso. |
+| `CALIFICACIONES` | Calificaciones registradas para inscripciones y examenes. |
 
 El script base se encuentra en `docs/oracle_schema.sql`.
 
@@ -242,7 +298,7 @@ mvn test
 Resultado esperado:
 
 ```text
-Tests run: 10, Failures: 0, Errors: 0
+Tests run: 17, Failures: 0, Errors: 0
 ```
 
 ## 14. Entregables
